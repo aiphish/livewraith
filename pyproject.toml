@@ -1,0 +1,19 @@
+[project]
+name = "aiphish-livewraith"
+
+version = "0.1.0"
+description = "Live streaming wraith for the aiphish platform."
+requires-python = ">=3.12"
+
+dependencies = [
+    "aiortc>=1.15.0",
+    "fastapi>=0.141.1",
+    "websockets>=17.0.1",
+]
+
+[tool.uv.build-backend]
+module-name = "aiphish.livewraith"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
