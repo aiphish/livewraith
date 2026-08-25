@@ -7,7 +7,9 @@ requires-python = ">=3.12"
 
 dependencies = [
     "aiortc>=1.15.0",
+    "aiosqlite>=0.22.1",
     "fastapi>=0.141.1",
+    "sqlmodel>=0.0.39",
     "websockets>=17.0.1",
 ]
 
