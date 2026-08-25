@@ -84,5 +84,4 @@ if config.DEBUG:
 
 app = create_app(config)
     
-
     
