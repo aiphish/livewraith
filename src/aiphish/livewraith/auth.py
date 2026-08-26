@@ -4,15 +4,15 @@ import logging
 from typing import Annotated
 
 from fastapi import Depends, Request, HTTPException, status
-from fastapi.security import APIKeyHeader
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-header_scheme = APIKeyHeader(name="x-key")
+security = HTTPBearer()
 
 logger = logging.getLogger(__name__)
 
 def verify_api_key(
     request: Request,
-    api_key: str = Depends(header_scheme),
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]
 ) -> str:
     """
     Validates the api key that has been provided against the set of key hashes.
@@ -20,16 +20,8 @@ def verify_api_key(
 
     Returns key hash.
     """
-
-    try:
-        key_hash = hashlib.sha256(api_key.encode()).hexdigest()
-    except Exception:
-        logger.exception("Error processing api_key hash")
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Invalid API Key Provided"
-        )
-
+    api_key = credentials.credentials
+    key_hash = hashlib.sha256(api_key.encode()).hexdigest()
     valid_key_hashes = request.app.state.api_key_hashes
 
     if not any(secrets.compare_digest(key_hash, k) for k in valid_key_hashes):
@@ -42,6 +34,3 @@ def verify_api_key(
     return key_hash
 
 APIKeyDep = Annotated[str, Depends(verify_api_key)]
-
-
-
