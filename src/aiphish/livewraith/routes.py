@@ -44,3 +44,12 @@ async def rtc_offer(
 
     return {"sdp": offer_result.sdp, "type": offer_result.type}
 
+@router.post("/wraith/create")
+async def create_wraith(
+
+)
+
+@router.post("/wraith/stream")
+async def stream_wraith(
+    
+)

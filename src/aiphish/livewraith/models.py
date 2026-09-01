@@ -1,9 +1,10 @@
 
-
+from datetime import datetime
 from enum import StrEnum
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, SQLModel, Relationship
+from sqlalchemy import DateTime, func
 
 class PKs(SQLModel, table=False):
     """
@@ -42,4 +43,42 @@ class Wraiths(PKs, table=True):
     remote_path: bool
     model: BackendModels
 
+class JobStatus(StrEnum):
+    """
+    Wraith creation status.
+    """
+    PENDING = "pending"
+    COMPLETED = "completed"
+    ERROR = "error"
 
+class WraithCreateJobs(PKs, table=True):
+    """
+    Each entry represents an Wraith creation job. Can be polled for status.
+    """
+
+    wraith_id: int | None = Field(
+        default=None,
+        foreign_key="wraiths.id",
+        index=True,
+        ondelete="CASCADE"
+    )
+    status: JobStatus
+    start_time: datetime = Field(
+        sa_type=DateTime(timezone=True),
+        sa_column_kwargs={
+            'server_default': func.now() # pylint: disable=not-callable
+        },
+        nullable=False
+    )
+    end_time: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),
+        nullable=True
+    )
+    tenant_public_id: UUID
+    org_public_id: UUID
+    file_path: str
+    remote_path: bool
+    model: BackendModels
+
+    wraith: "Wraiths | None" = Relationship()
