@@ -47,9 +47,16 @@ async def rtc_offer(
 @router.post("/wraith/create")
 async def create_wraith(
 
-)
+):
+    """
+    Endpoint to create a new wraith. Returns ref id for the wraith.
+    """
 
-@router.post("/wraith/stream")
+@router.websocket("/wraith/stream")
 async def stream_wraith(
     
-)
+):
+    """
+    Takes in a stream of TTS audio output. Caller must
+    have already setup the webRTC connection through the offer endpoint.
+    """
