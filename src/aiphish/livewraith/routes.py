@@ -60,3 +60,10 @@ async def stream_wraith(
     Takes in a stream of TTS audio output. Caller must
     have already setup the webRTC connection through the offer endpoint.
     """
+
+@router.get("wraith/status")
+async def get_wraith_status
+    """
+    Polls the status of the wraith creation process to determine if a wraith is ready for
+    streaming.
+    """
