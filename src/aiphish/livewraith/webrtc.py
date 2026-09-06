@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel
 
-from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
+from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription, RTCIceServer, RTCConfiguration
 
 logger = logging.getLogger(__name__)
 
@@ -25,57 +25,51 @@ class OfferResult:
     peer_id: UUID
     peer_conn: RTCPeerConnection
 
-class RTCManager:
+async def create_offer(
+    offer: OfferRequest,
+    stun: str | list[str] | None = None ,
+) -> OfferResult:
     """
-    Manages the WebRTC connections. Singleton that persists across sessions.
+    Recieves the clients SDP and returns an RTC signaling answer.
     """
 
-    async def __init__(self, cfg):
-        self._cfg = cfg
+    offer = RTCSessionDescription(sdp=offer.sdp, type=offer.type)
 
-    async def offer(
-        self,
-        offer: OfferRequest
-    ) -> OfferResult:
-        """
-        Recieves the clients SDP offer and returns an RTC signaling answer.
-        """
+    if stun:
+        ice_server = RTCIceServer(urls=stun)
+        pc_cfg = RTCConfiguration(iceServers=[ice_server])
+    else:
+        pc_cfg = None
 
-        offer = RTCSessionDescription(sdp=offer.sdp, type=offer.type)
+    pc = RTCPeerConnection(configuration=pc_cfg)
 
-        ice_server = RTCIceServer(urls=self._cfg.stun)
+    pc_id = uuid4()
 
-        pc = RTCPeerConnection(
-            configuration=RTCConfiguration(iceServers=[ice_server])
-        )
+    def log_info(msg, *args):
+        logger.info(f"PeerConnection({pc_id}): " + msg, *args)
 
-        pc_id = uuid4()
+    await pc.setRemoteDescription(offer)
 
-        def log_info(msg, *args):
-            logger.info(f"PeerConnection({pc_id}): " + msg, *args)
+    videostream = WraithStream()
+    audiostream = TTSStream()
 
-        await pc.setRemoteDescription(offer)
+    pc.addTrack(audiostream)
+    pc.addTrack(videostream)
 
-        videostream = WraithStream()
-        audiostream = TTSStream()
+    @pc.on("connectionstatechange")
+    async def on_connectionstatechange():
+        log_info(f"Connection state: {pc.connectionState}")
+        if pc.connectionState == "failed":
+            await pc.close()
     
-        pc.addTrack(audiostream)
-        pc.addTrack(videostream)
+    answer = await pc.createAnswer()
+    await pc.setLocalDescription(answer)
 
-        @pc.on("connectionstatechange")
-        async def on_connectionstatechange():
-            log_info(f"Connection state: {pc.connectionState}")
-            if pc.connectionState == "failed":
-                await pc.close()
-        
-        answer = await pc.createAnswer()
-        await pc.setLocalDescription(answer)
-
-        return OfferResult(
-            sdp=pc.localDescription.sdp,
-            type=pc.localDescription.type,
-            video_track=videostream,
-            audio_track=audiostream,
-            peer_id=pc_id,
-            peer_conn=pc
-        )
+    return OfferResult(
+        sdp=pc.localDescription.sdp,
+        type=pc.localDescription.type,
+        video_track=videostream,
+        audio_track=audiostream,
+        peer_id=pc_id,
+        peer_conn=pc
+    )
