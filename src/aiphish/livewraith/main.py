@@ -8,7 +8,7 @@
 ### This repo adapts code from https://github.com/lipku/LiveTalking/ published under Apache 2.0 
 ########################################################################################################
 
-
+import asyncio
 from contextlib import asynccontextmanager
 import logging
 
@@ -16,9 +16,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from aiphish.livewraith.config import LiveWraithConfig
-from aiphish.livewraith.factory import (build_db_engine)
+from aiphish.livewraith.server.sessions import SessionManager
+
+from aiphish.livewraith.wraithmuse.wraithmuse_types import WraithOpt
+
+from aiphish.livewraith.server.musetalk import load_model
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):   # pylint: disable=redefined-outer-name
@@ -26,6 +31,32 @@ async def lifespan(app: FastAPI):   # pylint: disable=redefined-outer-name
     This function provides startup and shutdown tasks for the
     FastAPI application to load the selected model and adapters (TODO)
     """
+    cfg = app.state.cfg
+    db_uri="sqlite+aiosqlite:///aiphish/db/livewraith.db"
+    db_engine: AsyncEngine = create_async_engine(
+        db_uri,
+        echo=cfg.DEBUG
+    )
+    app.state.db_engine = db_engine
+    session_maker = async_sessionmaker(
+        bind=db_engine,
+        expire_on_commit=False,
+        class_=AsyncSession
+    )
+    app.state.db_session_maker = session_maker
+
+    session_mgr = SessionManager()
+    app.state.session_mgr = session_mgr
+
+    app.state.model = load_model()
+    app.state.avatars = {}
+    app.state.avatar_lock = asyncio.Lock()
+    app.state.opt = WraithOpt()
+
+    yield
+
+    await db_engine.dispose()
+    await session_mgr.close_all()
 
 def create_app(cfg: LiveWraithConfig) -> FastAPI:
     """
@@ -47,22 +78,11 @@ def create_app(cfg: LiveWraithConfig) -> FastAPI:
             max_age=600
     )
 
-    db_engine = build_db_engine()
-    session_maker = async_sessionmaker(
-        bind=db_engine,
-        expire_on_commit=False,
-        class_=AsyncSession
-    )
-
-    logger.info("Attaching singletons to state...")
-
     server.state.cfg = cfg
-    server.state.db_engine = db_engine
-    server.state.db_session_maker = session_maker
 
     logger.info("Importing routes...")
 
-    import aiphish.livewraith.routes as routes
+    import aiphish.livewraith.server.routes as routes
 
     server.include_router(routes.router, prefix="/api/v1")
 
