@@ -63,3 +63,23 @@ class LiveWraithConfig(BaseSettings):
     SECRETS_DIR: str = "/run/secrets"
 
     API_KEYS: list[str]
+
+    CORS_ORIGINS: list[str] = []
+
+    @computed_field
+    @property
+    def DEBUG(self) -> bool:
+        """
+        Accepts DEBUG env variable directly instead of nesting it.
+        """
+        return self.ENV.DEBUG
+    
+    @field_validator("ENV", mode="before")
+    @classmethod
+    def _coerce_env(cls, v):
+        """
+        Accepts setting ENV type directly instead of through env_type.
+        """
+        if isinstance(v, str):
+            return {"ENV_TYPE": v}
+        return v
