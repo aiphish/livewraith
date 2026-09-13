@@ -37,7 +37,9 @@ COPY --from=builder /wheelhouse /wheelhouse
 
 RUN uv pip install --system --no-index --find-links /wheelhouse aiphish-livewraith
 
-WORKDIR /aiphish
+RUN mkdir -p /aiphish/livewraith/data/avatars
+
+WORKDIR /aiphish/livewraith
 
 CMD ["uvicorn", "aiphish.livewraith.main:app", "--port", "80", "--host", "0.0.0.0", "--proxy-headers", "--forwarded-allow-ips=172.16.0.0/12"]
 
