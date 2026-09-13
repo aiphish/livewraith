@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):   # pylint: disable=redefined-outer-name
     FastAPI application to load the selected model and adapters (TODO)
     """
     cfg = app.state.cfg
-    app.state.api_key_hashes = [hashlib.sha256(k.encode()).hexdigest() for k in cfg.API_KEYS]
+    app.state.api_key_hashes = set([hashlib.sha256(k.encode()).hexdigest() for k in cfg.API_KEYS])
     db_uri="sqlite+aiosqlite:///aiphish/db/livewraith.db"
     db_engine: AsyncEngine = create_async_engine(
         db_uri,
