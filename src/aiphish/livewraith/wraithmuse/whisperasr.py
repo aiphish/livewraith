@@ -1,5 +1,10 @@
+import time
+import queue
+from queue import Queue
+import numpy as np
+from numpy.typing import NDArray
 
-
+from aiphish.livewraith.wraithmuse.wraithstream import AudioFrameData
 class WhisperASR:
     """
     Streaming adapter for MuseTalk.
@@ -160,4 +165,4 @@ class WhisperASR:
             feature_chunks.append(selected_feature.reshape(-1, 384))
         return feature_chunks
     
-    
+
