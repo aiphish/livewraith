@@ -11,6 +11,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 import logging
+import hashlib
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
