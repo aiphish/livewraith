@@ -112,7 +112,7 @@ async def wraith_stream(
 
     return 200
 
-@router.get("wraith/status")
+@router.get("/wraith/status")
 async def get_wraith_status():
     """
     Polls the status of the wraith creation process to determine if a wraith is ready for
