@@ -1,11 +1,11 @@
 
-
+from uuid import UUID
 import logging
 import json
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
 from aiphish.livewraith.server.auth import verify_api_key, APIKeyDep
-from aiphish.livewraith.server.dependency import SessionDep, ModelDep, AvatarDep
+from aiphish.livewraith.server.dependency import SessionDep, ModelDep, AvatarDep, OptDep
 from aiphish.livewraith.server.webrtc import rtc_offer, OfferRequest
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ router = APIRouter(
 )
 
 @router.post("/offer")
-async def rtc_offer(
+async def create_rtc_offer(
     avatar_id: str,
     avatar: AvatarDep,
     session_manager: SessionDep,
@@ -70,32 +70,42 @@ async def create_wraith(
     """
     return 200
 
-@router.websocket("/wraith/stream")
-async def stream_wraith(
-    
+@router.websocket("/wraith/stream")  
+async def wraith_stream(
+    ws: WebSocket,
+    session_manager: SessionDep,
+    api_key_hash: APIKeyDep,
+    pc_id: UUID,
+    tenant_id: UUID | None = None,
+    org_id: UUID | None = None
 ):
     """
     Takes in a stream of TTS audio output. Caller must
     have already setup the webRTC connection through the offer endpoint.
     """
-
-   
-    async def wraith_stream(ws: WebSocket, session_manager: SessionManagerDep, peer_id: UUID, ...):
-        await ws.accept()
-        session = session_manager.get_session(peer_id, tenant_id, org_id)
+    await ws.accept()
+    session = session_manager.get_session(
+        session_id=pc_id,
+        tenant_id=tenant_id,
+        org_id=org_id
+    )
+    try:
+        while True:
+            data = await ws.receive()
+            if "bytes" in data:
+                session.pipeline.push_pcm(data["bytes"])
+            elif "text" in data:
+                ctrl = json.loads(data["text"])
+                if ctrl["type"] == "utterance_end":
+                    session.pipeline.end_utterance(ctrl.get("text"))
+                elif ctrl["type"] == "interrupt":
+                    session.pipeline.flush()
+    except WebSocketDisconnect:
         try:
-            while True:
-                msg = await ws.receive()
-                if "bytes" in msg:
-                    session.pipeline.push_pcm(msg["bytes"])
-                elif "text" in msg:
-                    ctrl = json.loads(msg["text"])
-                    if ctrl["type"] == "utterance_end":
-                        session.pipeline.end_utterance(ctrl.get("text"))
-                    elif ctrl["type"] == "interrupt":
-                        session.pipeline.flush()
-        except WebSocketDisconnect:
+            await ws.close(code=1000, reason=None)
+        except Exception:
             pass
+        pass
 
 
 
