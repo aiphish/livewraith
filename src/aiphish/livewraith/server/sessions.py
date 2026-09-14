@@ -22,8 +22,8 @@ class WraithSession:
     peer_id: UUID
     peer_conn: RTCPeerConnection
     key_hash: str
-    tenant_id: UUID
-    org_id: UUID
+    tenant_id: UUID | None
+    org_id: UUID | None
 
 class SessionNotFoundError(Exception):
     """
@@ -44,13 +44,13 @@ class SessionManager:
         Created a new inference session.
         """
         new_session = WraithSession(
-            avatar_id=info_obj.avatar_id,
-            peer_id=info_obj.id,
-            peer_conn=info_obj.peer_conn,
-            pipeline=info_obj.pipeline,
-            key_hash=info_obj.key_hash,
-            tenant_id=info_obj.tenant_id,
-            org_id=info_obj.org_id,
+            avatar_id=info_obj['avatar_id'],
+            peer_id=info_obj['id'],
+            peer_conn=info_obj['peer_conn'],
+            pipeline=info_obj['pipeline'],
+            key_hash=info_obj['key_hash'],
+            tenant_id=info_obj['tenant_id'],
+            org_id=info_obj['org_id'],
         )
         self._sessions[info_obj["id"]] = new_session
 

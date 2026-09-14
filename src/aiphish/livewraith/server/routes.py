@@ -25,8 +25,8 @@ async def create_rtc_offer(
     opt: OptDep,
     api_key_hash: APIKeyDep,
     offer_request: OfferRequest,
-    tenant_id: int | None = None,
-    org_id: int | None = None,
+    tenant_id: UUID | None = None,
+    org_id: UUID | None = None,
 ):
     """
     Initiates the webRTC connection
@@ -56,8 +56,9 @@ async def create_rtc_offer(
     async def on_connectionstatechange():
         if pc.connectionState == "failed":
             await pc.close()
-            session_manager.close_session(offer_result.peer_id)
-
+            session_manager.remove_session(offer_result.peer_id)
+    
+    offer_result.pipeline.start()
     return {"sdp": offer_result.sdp, "type": offer_result.type}
 
 @router.post("/wraith/create")
