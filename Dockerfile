@@ -12,7 +12,7 @@ WORKDIR /build
 
 RUN mkdir -p /wheelhouse
 
-COPY livewraith/pyproject.toml livewraith/uv.lock /build/livewraith/
+COPY pyproject.toml uv.lock /build/livewraith/
 
 WORKDIR /build/livewraith
 RUN uv export --locked --no-dev --no-emit-workspace --no-editable --format requirements.txt > requirements.txt 
@@ -20,7 +20,7 @@ RUN pip wheel --wheel-dir /wheelhouse -r requirements.txt
 
 
 WORKDIR /build/livewraith
-COPY livewraith/ /build/livewraith/
+COPY . /build/livewraith/
 RUN uv build --wheel && cp dist/*.whl /wheelhouse/
 
 
@@ -38,6 +38,10 @@ COPY --from=builder /wheelhouse /wheelhouse
 RUN uv pip install --system --no-index --find-links /wheelhouse aiphish-livewraith
 
 RUN mkdir -p /aiphish/livewraith/data/avatars
+
+RUN mkdir -p /aiphish/livewraith/models
+
+RUN mkdir -p /aiphish/livewraith/db
 
 WORKDIR /aiphish/livewraith
 
