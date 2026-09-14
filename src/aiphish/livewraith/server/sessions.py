@@ -3,7 +3,6 @@ import asyncio
 from uuid import UUID
 import logging
 from dataclasses import dataclass
-from fastapi import HTTPException
 from aiortc import RTCPeerConnection
 
 from aiphish.livewraith.wraithmuse.wraithstream import WraithPipeline
@@ -67,10 +66,10 @@ class SessionManager:
         try:
             session = self._sessions[session_id]
         except KeyError:
-            raise HTTPException("Session Not Found: %s", session_id) from None
+            raise SessionNotFoundError(session_id) from None
 
         if session.tenant_id != tenant_id or session.org_id != org_id:
-            raise HTTPException("Session Not Found: %s", session_id) from None
+            raise SessionNotFoundError(session_id) from None
 
         return session
 

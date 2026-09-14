@@ -2,9 +2,10 @@
 from uuid import UUID
 import logging
 import json
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, HTTPException
 
 from aiphish.livewraith.server.auth import verify_api_key, APIKeyDep
+from aiphish.livewraith.server.sessions import SessionNotFoundError
 from aiphish.livewraith.server.dependency import SessionDep, ModelDep, AvatarDep, OptDep
 from aiphish.livewraith.server.webrtc import rtc_offer, OfferRequest
 
@@ -74,7 +75,7 @@ async def create_wraith(
 async def wraith_stream(
     ws: WebSocket,
     session_manager: SessionDep,
-    api_key_hash: APIKeyDep,
+    _: APIKeyDep,
     pc_id: UUID,
     tenant_id: UUID | None = None,
     org_id: UUID | None = None
@@ -83,12 +84,15 @@ async def wraith_stream(
     Takes in a stream of TTS audio output. Caller must
     have already setup the webRTC connection through the offer endpoint.
     """
+    try:
+        session = session_manager.get_session(
+            session_id=pc_id,
+            tenant_id=tenant_id,
+            org_id=org_id
+        )
+    except SessionNotFoundError as e:
+        raise HTTPException(status_code=404, detail="WebRTC Session not found. Use the /offer endpoint to start a sessionn.") from e
     await ws.accept()
-    session = session_manager.get_session(
-        session_id=pc_id,
-        tenant_id=tenant_id,
-        org_id=org_id
-    )
     try:
         while True:
             data = await ws.receive()
@@ -99,7 +103,7 @@ async def wraith_stream(
                 if ctrl["type"] == "utterance_end":
                     session.pipeline.end_utterance(ctrl.get("text"))
                 elif ctrl["type"] == "interrupt":
-                    session.pipeline.flush()
+                    session.pipeline.flush_talk()
     except WebSocketDisconnect:
         try:
             await ws.close(code=1000, reason=None)
