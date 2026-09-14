@@ -20,6 +20,21 @@ from aiphish.livewraith.wraithmuse.wraithoutput import WraithOutput
 
 logger = logging.getLogger(__name__)
 
+class SampleReassembler:
+    """
+    Used to ensure the streamed data samples are 2 bytes. If oversized or undersized the
+    incomplete data is stored and combined with the next sample, with excess being stored for
+    the sample after that and so on.
+    """
+    def __init__(self):
+        self._leftover = b""
+
+    def push(self, chunk: bytes) -> np.ndarray:
+        data = self._leftover + chunk
+        usable_len = len(data) - (len(data) % 2)
+        self._leftover = data[usable_len:]
+        return np.frombuffer(data[:usable_len], dtype='<i2')
+
 @dataclass
 class AudioFrameData:
     data: NDArray[np.float32]
@@ -59,6 +74,8 @@ class WraithPipeline:
         
         self.quit_event = Event()
 
+        self._reassembler = SampleReassembler()
+
         self.msgqueues = []
     
     def put_audio_frame(self, audio_chunk:NDArray[np.float32], datainfo:dict={}): # 16khz 20ms pcm
@@ -66,7 +83,8 @@ class WraithPipeline:
 
     def push_pcm(self, data: bytes, eventpoint=None):
         """Called from the WS handler. Never sleeps."""
-        pcm = np.frombuffer(data, dtype=np.int16).astype(np.float32) / 32767
+        frame = self._reassembler.push(data)
+        pcm = frame.astype(np.float32) / 32767
         buf = np.concatenate([self._tail, pcm])
         n = (len(buf) // self.chunk) * self.chunk
         for i in range(0, n, self.chunk):
