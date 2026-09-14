@@ -4,7 +4,7 @@ from queue import Queue
 import numpy as np
 from numpy.typing import NDArray
 
-from aiphish.livewraith.wraithmuse.wraithstream import AudioFrameData
+from aiphish.livewraith.wraithmuse.utils import AudioFrameData
 from aiphish.livewraith.wraithmuse.wraithmuse_types import WraithOpt
 from aiphish.livewraith.musetalk.whisper.audio2feature import Audio2Feature
 

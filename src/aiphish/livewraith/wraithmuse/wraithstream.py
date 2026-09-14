@@ -4,43 +4,20 @@ import queue
 from threading import Thread, Event
 import json
 import logging
-from dataclasses import dataclass, field
 from queue import Queue
 
-from numpy.typing import NDArray
 import torch
 import numpy as np
+from numpy.typing import NDArray
 import cv2
 
-from aiphish.livewraith.wraithmuse.utils import mirror_index
+from aiphish.livewraith.wraithmuse.utils import mirror_index, SampleReassembler, AudioFrameData
 from aiphish.livewraith.musetalk.myutil import get_image_blending
 from aiphish.livewraith.wraithmuse.whisperasr import WhisperASR
 from aiphish.livewraith.wraithmuse.wraithmuse_types import WraithAvatar, WraithModel, WraithOpt
 from aiphish.livewraith.wraithmuse.wraithoutput import WraithOutput
 
 logger = logging.getLogger(__name__)
-
-class SampleReassembler:
-    """
-    Used to ensure the streamed data samples are 2 bytes. If oversized or undersized the
-    incomplete data is stored and combined with the next sample, with excess being stored for
-    the sample after that and so on.
-    """
-    def __init__(self):
-        self._leftover = b""
-
-    def push(self, chunk: bytes) -> np.ndarray:
-        data = self._leftover + chunk
-        usable_len = len(data) - (len(data) % 2)
-        self._leftover = data[usable_len:]
-        return np.frombuffer(data[:usable_len], dtype='<i2')
-
-@dataclass
-class AudioFrameData:
-    data: NDArray[np.float32]
-    type: int = 0  # 默认值
-    userdata: dict = field(default_factory=dict)
-
 
 class WraithPipeline:
     """
