@@ -57,6 +57,7 @@ async def create_rtc_offer(
     async def on_connectionstatechange():
         if pc.connectionState == "failed":
             await pc.close()
+            offer_result.pipeline.stop()
             session_manager.remove_session(offer_result.peer_id)
     
     offer_result.pipeline.start()
@@ -104,8 +105,10 @@ async def wraith_stream(
                     session.pipeline.end_utterance(ctrl.get("text"))
                 elif ctrl["type"] == "interrupt":
                     session.pipeline.flush_talk()
+        await session.pipeline.stop()
     except WebSocketDisconnect:
         try:
+            await session.pipeline.stop()
             await ws.close(code=1000, reason=None)
         except Exception:
             pass
