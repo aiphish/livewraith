@@ -11,12 +11,12 @@ from diffusers.optimization import get_scheduler
 from omegaconf import OmegaConf
 from einops import rearrange
 
-from avatars.musetalk.models.syncnet import SyncNet
-from avatars.musetalk.loss.discriminator import MultiScaleDiscriminator, DiscriminatorFullModel
-from avatars.musetalk.loss.basic_loss import Interpolate
-import avatars.musetalk.loss.vgg_face as vgg_face
-from avatars.musetalk.data.dataset import PortraitDataset
-from avatars.musetalk.utils.utils import (
+from aiphish.livewraith.musetalk.models.syncnet import SyncNet
+from aiphish.livewraith.musetalk.loss.discriminator import MultiScaleDiscriminator, DiscriminatorFullModel
+from aiphish.livewraith.musetalk.loss.basic_loss import Interpolate
+import aiphish.livewraith.musetalk.loss.vgg_face as vgg_face
+from aiphish.livewraith.musetalk.data.dataset import PortraitDataset
+from aiphish.livewraith.musetalk.utils.utils import (
     get_image_pred,
     process_audio_features,
     process_and_save_images

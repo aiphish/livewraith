@@ -8,8 +8,8 @@ from einops import rearrange
 import shutil
 import os.path as osp
 
-from avatars.musetalk.models.vae import VAE
-from avatars.musetalk.models.unet import UNet,PositionalEncoding
+from aiphish.livewraith.musetalk.models.vae import VAE
+from aiphish.livewraith.musetalk.models.unet import UNet,PositionalEncoding
 
 
 def load_all_model(
