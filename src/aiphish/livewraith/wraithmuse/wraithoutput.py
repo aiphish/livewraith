@@ -13,8 +13,8 @@ class WraithOutput:
         self,
         loop: asyncio.AbstractEventLoop,
     ) -> None:
-        self._audio_track = WraithTrack("video")
-        self._video_track = WraithTrack("audio")
+        self._audio_track = WraithTrack("audio")
+        self._video_track = WraithTrack("video")
         self._loop = loop
         
     def push_video_frame(self, bgr: np.ndarray) -> None:
