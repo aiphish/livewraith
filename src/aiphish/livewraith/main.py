@@ -53,7 +53,7 @@ async def lifespan(app: FastAPI):   # pylint: disable=redefined-outer-name
     app.state.model = load_model()
     app.state.avatars = {}
     app.state.avatar_lock = asyncio.Lock()
-    app.state.opt = WraithOpt()
+    app.state.opt: WraithOpt = cfg.OPT
 
     yield
 

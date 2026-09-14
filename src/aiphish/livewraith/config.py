@@ -19,6 +19,24 @@ EnvSettings = Annotated[
     Field(discriminator="ENV_TYPE")
 ]
 
+class WraithOpt(BaseModel):
+    """
+    CLI flags passed into MuseTalk.
+    """
+    fps: int = 50
+    batch_size: int = 16
+    stride_left_size: int = 10
+    stride_right_size: int = 10
+
+    @property
+    def chunk(self) -> int:
+        return 16000 // self.fps
+
+    @property
+    def frame_bytes(self) -> int:
+        return self.chunk * 2
+
+
 class LiveWraithConfig(BaseSettings):
     """
     The LiveWraith configuration class.
@@ -65,6 +83,8 @@ class LiveWraithConfig(BaseSettings):
     API_KEYS: list[str]
 
     CORS_ORIGINS: list[str] = []
+
+    OPT: WraithOpt
 
     @computed_field
     @property
