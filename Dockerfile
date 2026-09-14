@@ -16,7 +16,7 @@ COPY pyproject.toml uv.lock /build/livewraith/
 
 WORKDIR /build/livewraith
 RUN uv export --locked --no-dev --no-emit-workspace --no-editable --format requirements.txt > requirements.txt 
-RUN pip wheel --wheel-dir /wheelhouse -r requirements.txt
+RUN pip wheel --wheel-dir /wheelhouse --extra-index-url https://download.pytorch.org/whl/cu121 -r requirements.txt
 
 
 WORKDIR /build/livewraith
