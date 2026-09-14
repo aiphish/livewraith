@@ -15,6 +15,7 @@ dependencies = [
     "sqlmodel>=0.0.39",
     "torch>=2.5.1",
     "torchvision>=0.20.1",
+    "uvicorn[standard]>=0.40.0",
     "websockets>=17.0.1",
 ]
 
