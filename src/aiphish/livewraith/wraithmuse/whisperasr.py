@@ -5,12 +5,15 @@ import numpy as np
 from numpy.typing import NDArray
 
 from aiphish.livewraith.wraithmuse.wraithstream import AudioFrameData
+from aiphish.livewraith.wraithmuse.wraithmuse_types import WraithOpt
+from aiphish.livewraith.musetalk.whisper.audio2feature import Audio2Feature
+
 class WhisperASR:
     """
     Streaming adapter for MuseTalk.
     """
 
-    def __init__(self, opt, audio_processor):
+    def __init__(self, opt: WraithOpt, audio_processor: Audio2Feature):
         self.opt = opt
 
         self.fps = opt.fps # 20 ms per frame
@@ -22,8 +25,8 @@ class WhisperASR:
         self.batch_size = opt.batch_size
 
         self.frames: list[NDArray[np.float32]] = []
-        self.stride_left_size = opt.l
-        self.stride_right_size = opt.r
+        self.stride_left_size = opt.stride_left_size
+        self.stride_right_size = opt.stride_right_size
         self.feat_queue = Queue(maxsize=2)
 
         self.audio_processor = audio_processor
