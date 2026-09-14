@@ -105,7 +105,6 @@ async def wraith_stream(
                     session.pipeline.end_utterance(ctrl.get("text"))
                 elif ctrl["type"] == "interrupt":
                     session.pipeline.flush_talk()
-        session.pipeline.stop()
     except WebSocketDisconnect:
         try:
             session.pipeline.stop()
