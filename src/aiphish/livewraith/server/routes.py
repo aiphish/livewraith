@@ -44,8 +44,7 @@ async def create_rtc_offer(
             "id": offer_result.peer_id,
             "avatar_id": avatar_id,
             "key_hash": api_key_hash,
-            "audio": offer_result.audio_track,
-            "video": offer_result.video_track,
+            "pipeline": offer_result.pipeline,
             "peer_conn": offer_result.peer_conn,
             "tenant_id": tenant_id,
             "org_id": org_id

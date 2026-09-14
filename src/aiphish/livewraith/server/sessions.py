@@ -47,7 +47,7 @@ class SessionManager:
             avatar_id=info_obj.avatar_id,
             peer_id=info_obj.id,
             peer_conn=info_obj.peer_conn,
-            pipeline=WraithPipeline,
+            pipeline=info_obj.pipeline,
             key_hash=info_obj.key_hash,
             tenant_id=info_obj.tenant_id,
             org_id=info_obj.org_id,
