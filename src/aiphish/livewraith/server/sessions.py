@@ -88,7 +88,7 @@ class SessionManager:
         Used for app shutdown.
         """
         results = await asyncio.gather(
-            *(session.peer_conn.close() for session in self._sessions),
+            *(session.peer_conn.close() for session in self._sessions.values()),
             return_exceptions=True
         )
         for session, result in zip(self._sessions, results):
