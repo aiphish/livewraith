@@ -15,7 +15,12 @@ def load_model():
     Pre-loads the MuseTalk models
     """
     vae, unet, pe = load_all_model()
-    device = torch.device("cuda")
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        device = torch.device('mps')
+    else:
+        device = torch.device('cpu')
     timesteps = torch.tensor([0], device=device)
     pe = pe.half().to(device)
     vae.vae = vae.vae.half().to(device)
