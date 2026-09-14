@@ -2,7 +2,7 @@
 
 ## --- Builder Stage --- ##
 
-FROM python:3.13-slim-trixie AS builder
+FROM python:3.12-slim-trixie AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
@@ -26,7 +26,7 @@ RUN uv build --wheel && cp dist/*.whl /wheelhouse/
 
 ## --- Production Stage --- ##
 
-FROM python:3.13-slim-trixie AS production
+FROM python:3.12-slim-trixie AS production
 
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
