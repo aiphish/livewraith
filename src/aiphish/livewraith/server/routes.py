@@ -2,7 +2,7 @@
 from uuid import UUID
 import logging
 import json
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, WebSocketException, status
 
 from aiphish.livewraith.server.auth import verify_api_key, APIKeyDep
 from aiphish.livewraith.server.sessions import SessionNotFoundError
@@ -92,7 +92,7 @@ async def wraith_stream(
             org_id=org_id
         )
     except SessionNotFoundError as e:
-        raise HTTPException(status_code=404, detail="WebRTC Session not found. Use the /offer endpoint to start a sessionn.") from e
+        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="WebRTC Session not found. Use the /offer endpoint to start a sessionn.") from e
     await ws.accept()
     try:
         while True:
@@ -105,10 +105,10 @@ async def wraith_stream(
                     session.pipeline.end_utterance(ctrl.get("text"))
                 elif ctrl["type"] == "interrupt":
                     session.pipeline.flush_talk()
-        await session.pipeline.stop()
+        session.pipeline.stop()
     except WebSocketDisconnect:
         try:
-            await session.pipeline.stop()
+            session.pipeline.stop()
             await ws.close(code=1000, reason=None)
         except Exception:
             pass
