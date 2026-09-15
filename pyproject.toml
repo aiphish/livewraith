@@ -6,6 +6,7 @@ description = "Live streaming wraith for the aiphish platform."
 requires-python = ">=3.12"
 
 dependencies = [
+    "aiofiles>=25.1.0",
     "aiortc>=1.15.0",
     "aiosqlite>=0.22.1",
     "diffusers>=0.40.0",

@@ -111,12 +111,6 @@ async def wraith_stream(
             await ws.close(code=1000, reason=None)
         except Exception:
             pass
-        pass
-
-
-
-
-    return 200
 
 @router.get("/wraith/status")
 async def get_wraith_status():
