@@ -39,7 +39,7 @@ async def lifespan(app: FastAPI):   # pylint: disable=redefined-outer-name
         if cfg.DEBUG:
             logger.info("DEV MODE, NO API KEYS PROVIDED. GENERATING...")
             key = secrets.token_urlsafe(32)
-            logger.ingo("DO NOT USE IN PRODUCTION. API_KEY: %s", key)
+            logger.info("DO NOT USE IN PRODUCTION. API_KEY: %s", key)
             cfg.API_KEYS = [key]
         else:
             raise RuntimeError("PRODUCTION MODE: NO API KEYS FOUND")
