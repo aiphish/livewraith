@@ -80,7 +80,7 @@ class LiveWraithConfig(BaseSettings):
 
     SECRETS_DIR: str = "/run/secrets"
 
-    API_KEYS: list[str]
+    API_KEYS: list[str] = []
 
     CORS_ORIGINS: list[str] = []
 

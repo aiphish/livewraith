@@ -12,6 +12,7 @@ import asyncio
 from contextlib import asynccontextmanager
 import logging
 import hashlib
+import secrets
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,7 +33,17 @@ async def lifespan(app: FastAPI):   # pylint: disable=redefined-outer-name
     This function provides startup and shutdown tasks for the
     FastAPI application to load the selected model and adapters (TODO)
     """
+
     cfg = app.state.cfg
+    if not cfg.API_KEYS:
+        if cfg.DEBUG:
+            logger.info("DEV MODE, NO API KEYS PROVIDED. GENERATING...")
+            key = secrets.token_urlsafe(32)
+            logger.ingo("DO NOT USE IN PRODUCTION. API_KEY: %s", key)
+            cfg.API_KEYS = [key]
+        else:
+            raise RuntimeError("PRODUCTION MODE: NO API KEYS FOUND")
+            
     app.state.api_key_hashes = {hashlib.sha256(k.encode()).hexdigest() for k in cfg.API_KEYS}
     db_uri="sqlite+aiosqlite:///db/livewraith.db"
     db_engine: AsyncEngine = create_async_engine(
