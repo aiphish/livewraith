@@ -84,7 +84,10 @@ class LiveWraithConfig(BaseSettings):
 
     CORS_ORIGINS: list[str] = []
 
-    OPT: WraithOpt
+    OPT: Annotated[
+        WraithOpt,
+        Field(default_factory=WraithOpt)
+    ]
 
     @computed_field
     @property
