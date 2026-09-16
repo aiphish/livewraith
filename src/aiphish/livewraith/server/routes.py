@@ -1,12 +1,31 @@
-
-from uuid import UUID
+import asyncio
+from uuid import UUID, uuid4
 import logging
 import json
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, WebSocketException, status
+import os
+from secrets import token_urlsafe
+
+import aiofiles
+from fastapi import (
+    APIRouter,
+    Depends,
+    WebSocket,
+    WebSocketDisconnect,
+    WebSocketException,
+    status,
+    UploadFile
+)
 
 from aiphish.livewraith.server.auth import verify_api_key, APIKeyDep
 from aiphish.livewraith.server.sessions import SessionNotFoundError
-from aiphish.livewraith.server.dependency import SessionDep, ModelDep, AvatarDep, OptDep
+from aiphish.livewraith.server.dependency import (
+    SessionDep,
+    ModelDep,
+    AvatarDep,
+    OptDep,
+    CreatorDep,
+    ConfigDep,
+)
 from aiphish.livewraith.server.webrtc import rtc_offer, OfferRequest
 
 logger = logging.getLogger(__name__)
@@ -63,14 +82,48 @@ async def create_rtc_offer(
     offer_result.pipeline.start()
     return {"sdp": offer_result.sdp, "type": offer_result.type}
 
-@router.post("/wraith/create")
+@router.post("/wraith/create", status_code=status.HTTP_202_CREATED)
 async def create_wraith(
-
-):
+    creator: CreatorDep,
+    api_key_hash: APIKeyDep,
+    cfg: ConfigDep,
+    video: UploadFile,
+    tenant_id: UUID | None = None,
+    org_id: UUID | None = None,
+) -> dict[str, UUID]:
     """
     Endpoint to create a new wraith. Returns ref id for the wraith.
     """
-    return 200
+
+    wraith_id = uuid4()
+
+    temp_video_path = os.path.join(cfg.TEMP_FOLDER, wraith_id)
+
+    chunk_size = 1024*1024
+    async with aiofiles.open(temp_video_path, "wb") as f:
+        while chunk := await video.read(chunk_size):
+            await f.write(chunk)
+    
+    bbox_shift = cfg.BBOX_SHIFT
+    extra_margin = cfg.EXTRA_MARGIN
+    parsing_mode = cfg.PARSING_MODE
+
+    async_thread = asyncio.to_thread(
+        creator.generate_avatar,
+        videofile_path=temp_video_path,
+        tenant_id=tenant_id,
+        org_id=org_id,
+        save_path=cfg.AVATAR_FOLDER,
+        avatar_id=wraith_id,
+        bbox_shift=bbox_shift,
+        extra_margin=extra_margin,
+        parsing_mode=parsing_mode
+    )
+    task = asyncio.create_task(async_thread)
+    creator.tasks.add(task)
+    task.add_done_callback(creator.tasks.discard)
+
+    return {"wraith_id": wraith_id}
 
 @router.websocket("/wraith/stream")  
 async def wraith_stream(

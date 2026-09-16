@@ -3,9 +3,10 @@ from typing import Annotated
 from fastapi import Depends, Request, HTTPException
 import logging
 
+from aiphish.livewraith.config import LiveWraithConfig
 from aiphish.livewraith.server.sessions import SessionManager
 from aiphish.livewraith.wraithmuse.wraithmuse_types import WraithModel, WraithAvatar, WraithOpt
-from aiphish.livewraith.server.musetalk import load_avatar
+from aiphish.livewraith.server.musetalk import load_avatar, AvatarCreator
 
 logger = logging.getLogger(__name__)
 
@@ -53,4 +54,21 @@ def get_opt(request: Request) -> WraithOpt:
     return request.app.state.opt
 
 OptDep = Annotated[WraithOpt, Depends(get_opt)]
+
+def get_config(request: Request) -> LiveWraithConfig:
+    """
+    Returns the running configuration.
+    """
+    return request.app.state.cfg
+
+ConfigDep = Annotated[LiveWraithConfig, Depends(get_config)]
+
+def get_creator(request: Request) -> AvatarCreator:
+    """
+    Returns the avatar creator that tracks creation progress.
+    """
+
+    return request.app.state.creator
+
+CreatorDep = Annotated[AvatarCreator, Depends(get_creator)]
 
