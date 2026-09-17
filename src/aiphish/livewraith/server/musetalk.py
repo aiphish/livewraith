@@ -62,8 +62,10 @@ import logging
 import shutil
 import json
 from secrets import token_urlsafe
-import aiofiles
+import subprocess
+import cv2
 from aiphish.livewraith.musetalk.utils.preprocessing import get_landmark_and_bbox, read_imgs
+from aiphish.livewraith.musetalk.utils.blending import get_image_prepare_material
 from aiphish.livewraith.musetalk.utils.face_parsing import FaceParsing
 
 logger = logging.getLogger(__name__)
@@ -73,6 +75,15 @@ class VideoError(Exception):
     Error with the provided video.
     """
 
+class WraithAlreadyExists(Exception):
+    """
+    Error if there is an avatar/wraith ID collision.
+    """
+
+class WraithCreated(BaseModel):
+    wraith_id: UUID
+    path: str
+
 class AvatarCreator:
     """
     Class for handling the creation of MuseTalk Avatars and tracking progress.
@@ -80,7 +91,8 @@ class AvatarCreator:
     def __init__(self):
         self._progress: dict[UUID, int] = {}
         self._error_reason: dict[UUID, str] = {}
-        self._subprogress_percent: dict[UUID, float] = 0
+        self._subprogress_percent: dict[UUID, float] = {}
+        self.tasks: set[asyncio.Task] = set()
 
         self._progress_map = {
             0: "Does not exist",
@@ -88,24 +100,22 @@ class AvatarCreator:
             2: "Frame extraction complete",
             3: "Face detection complete",
             4: "VAE encoding complete",
-            5: "Masking complete"
-            
-
+            5: "Masking complete",
+            1000: "An error occured."
         }
 
-    async def generate_avatar(
+    def generate_avatar(
         self,
-        media_file: UploadFile,
+        avatar_id: UUID,
+        videofile_path: str,
         tenant_id: UUID,
         org_id: UUID,
         save_path: str = "/aiphish/livewraith/avatars",
-        reprocess_avatar_id: UUID | None = None,
         bbox_shift: int = 0,
         extra_margin: int = 10,
-        parsing_mode='jaw',
-        version='v15', # required, param for visibility
-
-    ) -> UUID:
+        parsing_mode: str ='jaw',
+        version='v15', # v15 required, unused param for visibility
+    ) -> WraithCreated:
         """
         Generates the MuseTalk Avatar and saves it to disk. Returns the avatar reference ID.
         Class takes an uploaded video and converts it to images.
@@ -116,10 +126,6 @@ class AvatarCreator:
 
         ffmpeg used for frame extraction. resamples to 25 fps and adjusts for rotation if
         recorded on mobile. Normalizes resolution to 720p.
-
-        If avatar id is provided, existing avatar under that ID will be deleted and avatar
-        will be reprocessed. Avatar ID should not be provided for a new avatar
-        but is not enforced.
 
         bbox_shifts:    Vertically offsets the detected face bounding box, changing 
                         which region of the face is cropped and fed to the model. Default 0.
@@ -133,48 +139,44 @@ class AvatarCreator:
 
         Musetalk V15 required.
         """
+        org_id_str = str(org_id) if org_id else None
+        tenant_id_str = str(tenant_id) if tenant_id else None
+        avatar_id_str = str(avatar_id)
 
         if not os.path.exists(save_path):
             save_path = "/aiphish/livewraith/avatars"
-        
-        if reprocess_avatar_id:
-            avatar_id = reprocess_avatar_id
-            avatar_save_path = os.path.join(save_path, org_id, tenant_id, avatar_id)
-            if os.path.exists(avatar_save_path):
-                shutil.rmtree(avatar_save_path)
-        else:
-            avatar_id = uuid4()
-            avatar_save_path = os.path.join(save_path, org_id, tenant_id, avatar_id)
-        
-        temp_filename = token_urlsafe(32)
-        temp_video_path = os.path.join(avatar_save_path, "video", temp_filename)
+    
+        avatar_save_path = save_path
+        avatar_save_path = os.path.join(avatar_save_path, org_id_str) if org_id else avatar_save_path
+        avatar_save_path = os.path.join(avatar_save_path, tenant_id_str) if tenant_id else avatar_save_path
+        avatar_save_path = os.path.join(avatar_save_path, avatar_id_str)
+
+        if os.path.exists(avatar_save_path):
+            self._progress[avatar_id] = 1000
+            self._error_reason[avatar_id] = "Wraith ID already exists."
+            self._subprogress_percent[avatar_id] = 0
+            raise WraithAlreadyExists("A Wraith with this ID already exists.")
+
         full_imgs_path = os.path.join(avatar_save_path, 'full_imgs')
-        mask_out_path = os.path.join(avatar_save_path, 'mask')
-        os.makedirs(temp_video_path, exist_ok=True)
         os.makedirs(full_imgs_path, exist_ok=True)
+        mask_out_path = os.path.join(avatar_save_path, 'mask')
         os.makedirs(mask_out_path, exist_ok=True)
         mask_coords_path = os.path.join(avatar_save_path, 'mask_coords.pkl')
         coords_path = os.path.join(avatar_save_path, 'coords.pkl')
         latents_out_path = os.path.join(avatar_save_path, 'latents.pt')
         
-        chunk_size = 1024*1024
-        await media_file.seek(0)
-        async with aiofiles.open(temp_video_path, "wb") as f:
-            while chunk := await media_file.read(chunk_size):
-                await f.write(chunk)
-        
-
-todo        ####### WRITE VIDEO FILE TO TEMPFILE FOLDER FOR ALL VIDEO FILES AND PASS PATH IN. KEEP THIS METHOD SYNC ONLY
-        
         metadata_file = os.path.join(avatar_save_path, "avatar_info.json")
-        async with aiofiles.open(metadata_file, "wb") as f:
-            await f.write(
-                json.dump({
-                    "avatar_id": avatar_id,
-                    "bbox_shift": bbox_shift
-                })
-            )
-        
+
+        with open(metadata_file, "w") as f:
+            json.dump(
+                {
+                    "avatar_id": avatar_id_str,
+                    "bbox_shift": bbox_shift,
+                    "extra_margin": extra_margin,
+                    "parsing_mode": parsing_mode,
+                    "version": version
+                }, f)
+            
         self._progress[avatar_id] = 1
         self._subprogress_percent[avatar_id] = 0
 
@@ -182,35 +184,46 @@ todo        ####### WRITE VIDEO FILE TO TEMPFILE FOLDER FOR ALL VIDEO FILES AND 
             "ffmpeg",
             "-nostdin",
             "-loglevel", "error",
-            "-i", str(temp_video_path),
+            "-i", str(videofile_path),
             "-vf",
-            "fps=25",
-            "scale=-2:720",
+            "fps=25,scale=-2:720",
+            "-start_number", "0",
+            "-frames:v", "500",
             f"{full_imgs_path}/%08d.png"
         ]
-        proc = await asyncio.create_subprocess.exec(
-            *ffmpeg_cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
         try:
-            _, stderr = await asyncio.wait_for(proc.communicate(), timeout=300)
-        except asyncio.TimeoutError:
-            proc.kill()
-
-        if proc.returncode != 0:
+            subprocess.run(
+                ffmpeg_cmd,
+                capture_output=True,
+                timeout=600,
+                check=True
+            )
+        except subprocess.TimeoutExpired as e:
             self._progress[avatar_id] = 1000
             self._error_reason[avatar_id] = "Unable to extract frames from video. Confirm valid video file and try again later."
-            logger.error("Avatar creation failed for: %s. Reason: %s", avatar_id, stderr.decode())
-            raise VideoError("Cannot extract frames from video")
-        
+            logger.error("Avatar creation failed for: %s. Reason: Timeout.", avatar_id)
+            shutil.rmtree(avatar_save_path, ignore_errors=True)
+            raise VideoError("Cannot extract frames from video") from e
+        except subprocess.CalledProcessError as e:
+            self._progress[avatar_id] = 1000
+            self._error_reason[avatar_id] = "Unable to extract frames from video. Confirm valid video file and try again later."
+            logger.error("Avatar creation failed for: %s. Reason: %s", avatar_id, e.stderr.decode(errors="replace")[-2000:])
+            shutil.rmtree(avatar_save_path, ignore_errors=True)
+            raise VideoError("Cannot extract frames from video") from e
+
         self._progress[avatar_id] += 1
         self._subprogress_percent[avatar_id] = 0
 
         img_list = sorted(glob.glob(os.path.join(full_imgs_path, '*.png')))
+        if not img_list:
+            self._progress[avatar_id] = 1000
+            self._error_reason[avatar_id] = "At least one frame failed extraction. Regenerate video."
+            shutil.rmtree(avatar_save_path, ignore_errors=True)
+            raise VideoError("At least one frame failed extraction. Regenerate video.")
         coord_list, frame_list = get_landmark_and_bbox(img_list, bbox_shift)
 
         self._progress[avatar_id] += 1
+        self._subprogress_percent[avatar_id] = 0
 
         input_latent_list = []
         idx = -1
@@ -226,31 +239,30 @@ todo        ####### WRITE VIDEO FILE TO TEMPFILE FOLDER FOR ALL VIDEO FILES AND 
         for bbox, frame in zip(coord_list, frame_list):
             idx = idx + 1
             if bbox == coord_placeholder:
-                continue
+                self._progress[avatar_id] = 1000
+                self._subprogress_percent[avatar_id] = 0
+                self._error_reason[avatar_id] = "At least one frame failed detection. Regenerate video."
+                shutil.rmtree(avatar_save_path, ignore_errors=True)
+                raise VideoError("At least one frame failed detection. Regenerate video.")
             x1, y1, x2, y2 = bbox
             y2 = y2 + extra_margin
             y2 = min(y2, frame.shape[0])
             coord_list[idx] = [x1, y1, x2, y2]
             crop_frame = frame[y1:y2, x1:x2]
             resized_crop_frame = cv2.resize(crop_frame, (256, 256), interpolation=cv2.INTER_LANCZOS4)
-            latents = vae_local.get_latents_for_unet(resized_crop_frame)
+            latents = vae_local.get_latents_for_unet(resized_crop_frame).half() # half to convert back when using cpu
             input_latent_list.append(latents)
 
         self._progress[avatar_id] += 1
         self._subprogress_percent[avatar_id] = 0
 
         mask_coords_list_cycle = []
-        mask_list_cycle = []
         for i, frame in enumerate(frame_list):
-            cv2.imwrite(f"{full_imgs_path}/{str(i).zfill(8)}.png", frame)
-
             x1, y1, x2, y2 = coord_list[i]
-            mode = parsing_mode
-            mask, crop_box = get_image_prepare_material(frame, [x1, y1, x2, y2], fp=fp_local, mode=mode)
+            mask, crop_box = get_image_prepare_material(frame, [x1, y1, x2, y2], fp=fp_local, mode=parsing_mode)
             cv2.imwrite(f"{mask_out_path}/{str(i).zfill(8)}.png", mask)
 
-            mask_coords_list_cycle += [crop_box]
-            mask_list_cycle.append(mask)
+            mask_coords_list_cycle.append(crop_box)
 
             self._subprogress_percent[avatar_id] = (i / len(frame_list))
         
@@ -260,52 +272,19 @@ todo        ####### WRITE VIDEO FILE TO TEMPFILE FOLDER FOR ALL VIDEO FILES AND 
         with open(mask_coords_path, 'wb') as f:
             pickle.dump(mask_coords_list_cycle, f)
         
-        async with aiofiles.open(mask_coords_path, "wb") as f:
-                await f.write(
-                    pickle.dump(mask_coords_list_cycle, f)
-                )
+        with open(coords_path, 'wb') as f:
+            pickle.dump(coord_list, f)
+        
+        torch.save(input_latent_list, latents_out_path)
 
+        logger.info("Avatar created. Ref: %s", avatar_id)
 
+     
+        os.unlink(videofile_path)
+
+        return WraithCreated(
+            wraith_id=avatar_id,
+            path=avatar_save_path
+        )
 
         
-
-
-
-        
-           
-
-
-
-
-
-    
-    def video2imgs(
-        vid_path,
-        save_path,
-        ext='.png', 
-        cut_frame=10000000
-    ):
-        """
-        """
-    cap = cv2.VideoCapture(vid_path)
-    count = 0
-    while True:
-        if count > cut_frame:
-            break
-        ret, frame = cap.read()
-        if ret:
-            cv2.putText(frame, "LiveTalking", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (128,128,128), 1)
-            cv2.imwrite(f"{save_path}/{count:08d}.png", frame)
-            count += 1
-        else:
-            break
-
-
-
-
-
-
-
-
-
-

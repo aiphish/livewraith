@@ -96,8 +96,8 @@ async def create_wraith(
     """
 
     wraith_id = uuid4()
-
-    temp_video_path = os.path.join(cfg.TEMP_FOLDER, wraith_id)
+    tempfile = token_urlsafe(32)
+    temp_video_path = os.path.join(cfg.TEMP_FOLDER, tempfile)
 
     chunk_size = 1024*1024
     async with aiofiles.open(temp_video_path, "wb") as f:
@@ -110,11 +110,11 @@ async def create_wraith(
 
     async_thread = asyncio.to_thread(
         creator.generate_avatar,
+        avatar_id=wraith_id,
         videofile_path=temp_video_path,
         tenant_id=tenant_id,
         org_id=org_id,
         save_path=cfg.AVATAR_FOLDER,
-        avatar_id=wraith_id,
         bbox_shift=bbox_shift,
         extra_margin=extra_margin,
         parsing_mode=parsing_mode
