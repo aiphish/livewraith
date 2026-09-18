@@ -2,15 +2,37 @@
 import pickle
 import os
 import glob
+import asyncio
+from uuid import UUID
+import logging
+from typing import NamedTuple
+import shutil
+import json
+import subprocess
 
+from pydantic import BaseModel
+import cv2
+import numpy.typing as npt
+import numpy as np
 import torch
-from fastapi import UploadFile
 
 from aiphish.livewraith.wraithmuse.utils import read_imgs
 
 from aiphish.livewraith.musetalk.utils.utils import load_all_model
 from aiphish.livewraith.musetalk.models.vae import VAE
 from aiphish.livewraith.musetalk.whisper import audio2feature as A2F
+
+
+
+from aiphish.livewraith.musetalk.utils.preprocessing import get_landmark_and_bbox
+from aiphish.livewraith.musetalk.utils.blending import get_image_prepare_material
+from aiphish.livewraith.musetalk.utils.face_parsing import FaceParsing
+
+class WraithNotFoundError(Exception):
+    """
+    Raised when an invalid ID is used.
+    """ 
+
 
 def load_model():
     """
@@ -30,12 +52,25 @@ def load_model():
     audio_processor = A2F(model_path="./models/whisper") #pylint: disable=not-callable
     return vae, unet, pe, timesteps, audio_processor
 
-def load_avatar(avatar_id):
+def load_avatar(avatar_id: UUID, tenant_id: UUID, org_id: UUID, avatar_root: str):
     """
     Returns the saved avatar files.
     """
-    avatar_path = f"./data/avatars/{avatar_id}"
-    full_imgs_path = f"{avatar_path}/full_imgs" 
+    if not os.path.exists(avatar_root):
+        avatar_root = "/aiphish/livewraith/avatars"
+
+    org_id_str = str(org_id) if org_id else None
+    tenant_id_str = str(tenant_id) if tenant_id else None
+    avatar_id_str = str(avatar_id)
+
+    avatar_path = os.path.join(avatar_root, org_id_str) if org_id else avatar_root
+    avatar_path = os.path.join(avatar_path, tenant_id_str) if tenant_id else avatar_path
+    avatar_path = os.path.join(avatar_path, avatar_id_str)
+
+    if not os.path.exists(avatar_path):
+        raise WraithNotFoundError("No wraith with that ID exists.")
+
+    full_imgs_path = f"{avatar_path}/full_imgs"
     coords_path = f"{avatar_path}/coords.pkl"
     latents_out_path= f"{avatar_path}/latents.pt"
     mask_out_path =f"{avatar_path}/mask"
@@ -55,24 +90,6 @@ def load_avatar(avatar_id):
     mask_list_cycle = read_imgs(input_mask_list)
     
     return frame_list_cycle,mask_list_cycle,coord_list_cycle,mask_coords_list_cycle,input_latent_list_cycle
-
-
-import asyncio
-import os
-from uuid import uuid4, UUID
-import logging
-from collections import namedtuple
-import shutil
-import json
-from secrets import token_urlsafe
-from pydantic import BaseModel
-import subprocess
-import cv2
-import numpy.typing as npt
-import numpy as np
-from aiphish.livewraith.musetalk.utils.preprocessing import get_landmark_and_bbox, read_imgs
-from aiphish.livewraith.musetalk.utils.blending import get_image_prepare_material
-from aiphish.livewraith.musetalk.utils.face_parsing import FaceParsing
 
 logger = logging.getLogger(__name__)
 

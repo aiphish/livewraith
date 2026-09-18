@@ -1,4 +1,5 @@
 import asyncio
+from uuid import UUID
 from typing import Annotated
 from fastapi import Depends, Request, HTTPException
 import logging
@@ -27,18 +28,26 @@ def get_model(request: Request) -> WraithModel:
 
 ModelDep = Annotated[WraithModel, Depends(get_model)]
 
-async def get_avatar(request: Request, avatar_id: str) -> WraithAvatar:
+async def get_avatar(
+    request: Request,
+    avatar_id: UUID,
+    tenant_id: UUID,
+    org_id: UUID,
+) -> WraithAvatar:
     """
     Loads the avatar files
     """
     cache: dict[str, WraithAvatar] = request.app.state.avatars
     lock: asyncio.Lock = request.app.state.avatar_lock
-
+    cfg = request.app.state.cfg
+    avatar_path = cfg.AVATAR_FOLDER
     if avatar_id in cache:
         return cache[avatar_id]
-    async with request.app.state.avatar_lock:
+    async with lock:
         try:
-            cache[avatar_id] = await asyncio.to_thread(load_avatar, avatar_id)
+            cache[avatar_id] = await asyncio.to_thread(
+                load_avatar, avatar_id, tenant_id, org_id, avatar_path
+            )
         except FileNotFoundError as e:
             logger.warning("avatar not found: %s (%s)", avatar_id, e)
             raise HTTPException(status_code=404, detail=f"avatar not found: {avatar_id}") from e
