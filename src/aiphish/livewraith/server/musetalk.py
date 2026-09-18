@@ -110,6 +110,12 @@ class WraithCreated(BaseModel):
     wraith_id: UUID
     path: str
 
+class WraithCreationStatus(BaseModel):
+    status: str
+    progress: str
+    stage: str
+    error_msg: str
+
 class AvatarPaths(NamedTuple):
     """
     Folder structure for creating an avatar.
@@ -142,6 +148,7 @@ class AvatarCreator:
         self._progress: dict[UUID, int] = {}
         self._error_reason: dict[UUID, str] = {}
         self._subprogress_percent: dict[UUID, float] = {}
+        self._status_percent: dict[UUID, float] = {}
         self.tasks: set[asyncio.Task] = set()
 
         self._progress_map = {
@@ -151,6 +158,7 @@ class AvatarCreator:
             3: "Face detection complete",
             4: "VAE encoding complete",
             5: "Masking complete",
+            6: "All stages complete",
             1000: "An error occured."
         }
     
@@ -311,6 +319,7 @@ class AvatarCreator:
             input_latent_list.append(latents)
 
             self._subprogress_percent[avatar_id] = idx / len(frame_list)
+            self._status_percent[avatar_id] += (0.3 * self._subprogress_percent[avatar_id])
 
         return coord_list, input_latent_list
     
@@ -336,6 +345,7 @@ class AvatarCreator:
             mask_coords_list_cycle.append(crop_box)
 
             self._subprogress_percent[avatar_id] = (i / len(frame_list))
+            self._status_percent[avatar_id] += (0.12 * self._subprogress_percent[avatar_id])
         
         return mask_coords_list_cycle
 
@@ -393,6 +403,7 @@ class AvatarCreator:
 
         self._progress[avatar_id] = 1
         self._subprogress_percent[avatar_id] = 0
+        self._status_percent[avatar_id] = 0.01
 
         self._extract_frames(
             avatar_id=avatar_id,
@@ -402,6 +413,7 @@ class AvatarCreator:
 
         self._progress[avatar_id] += 1
         self._subprogress_percent[avatar_id] = 0
+        self._status_percent[avatar_id] += 0.02
 
         coord_list, frame_list = self._face_detection(
             avatar_id=avatar_id, paths=paths, bbox_shift=bbox_shift
@@ -409,6 +421,7 @@ class AvatarCreator:
 
         self._progress[avatar_id] += 1
         self._subprogress_percent[avatar_id] = 0
+        self._status_percent[avatar_id] += 0.55
 
         device = torch.device('cpu')
         vae_local, _, _ = load_all_model(device=device)
@@ -447,8 +460,40 @@ class AvatarCreator:
 
         logger.info("Avatar created. Ref: %s", avatar_id)
 
+        self._status_percent[avatar_id] = 1
+
         return WraithCreated(
             wraith_id=avatar_id,
             path=paths.root
         )
+    
+    def create_status(
+        self,
+        avatar_id: UUID,
+    ) -> WraithCreationStatus:
+        """
+        Returns the creation status of the referenced wraith.
+        """
+
+        current_stage = self._progress[avatar_id]
+
+        if current_stage < 6:
+            current_stage + 1
+        
+        stage_desc = self._progress_map.get(current_stage, 0)
+            
+        if current_stage >= 1000:
+            error_reason = self._error_reason[avatar_id]
+        else:
+            error_reason = None
+        
+        return WraithCreationStatus(
+            status= "ready" if current_stage == 6 else "not ready",
+            progress=self._status_percent,
+            stage=current_stage,
+            stage=stage_desc,
+            stage_progress=self._subprogress_percent,
+            error_msg=error_reason
+        )
+
 

@@ -28,6 +28,7 @@ from aiphish.livewraith.server.dependency import (
     ConfigDep,
 )
 from aiphish.livewraith.server.webrtc import rtc_offer, OfferRequest
+from aiphish.livewraith.server.musetalk import WraithCreationStatus
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +134,7 @@ async def create_wraith(
 
     return {"wraith_id": wraith_id}
 
-@router.websocket("/wraith/stream")  
+@router.websocket("/wraith/stream")
 async def wraith_stream(
     ws: WebSocket,
     session_manager: SessionDep,
@@ -174,9 +175,14 @@ async def wraith_stream(
             pass
 
 @router.get("/wraith/status")
-async def get_wraith_status():
+async def get_wraith_status( 
+    creator: CreatorDep,
+    _: APIKeyDep,
+    avatar_id: UUID | None = None
+) -> WraithCreationStatus:
     """
     Polls the status of the wraith creation process to determine if a wraith is ready for
     streaming.
     """
-    return 200
+    return creator.create_status(avatar_id=avatar_id)
+
