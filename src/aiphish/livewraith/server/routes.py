@@ -96,7 +96,6 @@ async def create_wraith(
     Endpoint to create a new wraith. Returns ref id for the wraith.
     """
 
-
     wraith_id = uuid4()
     tempfile = token_urlsafe(32)
     temp_video_path = os.path.join(cfg.TEMP_FOLDER, tempfile)

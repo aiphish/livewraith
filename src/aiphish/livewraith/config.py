@@ -89,6 +89,15 @@ class LiveWraithConfig(BaseSettings):
         Field(default_factory=WraithOpt)
     ]
 
+    APP_ROOT: str = "/aiphish/livewraith"
+    TEMP_FOLDER: str = "/aiphish/livewraith/tempfiles"
+    AVATAR_FOLDER: str = "/aiphish/livewraith/avatars"
+    MODELS_FOLDER: str = "/aiphish/livewraith/models"
+
+    BBOX_SHIFT: int = 0
+    EXTRA_MARGIN: int = 10
+    PARSING_MODE: str ='jaw'
+
     @computed_field
     @property
     def DEBUG(self) -> bool:
