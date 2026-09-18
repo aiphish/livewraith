@@ -4,6 +4,7 @@ import logging
 import json
 import os
 from secrets import token_urlsafe
+from pathlib import Path
 
 import aiofiles
 from fastapi import (
@@ -95,6 +96,7 @@ async def create_wraith(
     Endpoint to create a new wraith. Returns ref id for the wraith.
     """
 
+
     wraith_id = uuid4()
     tempfile = token_urlsafe(32)
     temp_video_path = os.path.join(cfg.TEMP_FOLDER, tempfile)
@@ -121,7 +123,14 @@ async def create_wraith(
     )
     task = asyncio.create_task(async_thread)
     creator.tasks.add(task)
-    task.add_done_callback(creator.tasks.discard)
+
+    def _on_done(t: asyncio.Task) -> None:
+        creator.tasks.discard(t)
+        Path(temp_video_path).unlink(missing_ok=True)
+        if not t.cancelled() and (exc := t.exception()):
+            logger.error("Wraith generation failed: %s", wraith_id, exc_info=exc)
+
+    task.add_done_callback(_on_done)
 
     return {"wraith_id": wraith_id}
 

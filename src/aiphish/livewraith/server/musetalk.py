@@ -357,7 +357,7 @@ class AvatarCreator:
 
         Musetalk V15 required.
         """
-        
+
         paths = self._create_directories(
             avatar_id=avatar_id,
             tenant_id=tenant_id,
