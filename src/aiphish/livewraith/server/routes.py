@@ -87,7 +87,7 @@ async def create_rtc_offer(
 @router.post("/wraith/create", status_code=status.HTTP_202_CREATED)
 async def create_wraith(
     creator: CreatorDep,
-    api_key_hash: APIKeyDep,
+    _: APIKeyDep,
     cfg: ConfigDep,
     video: UploadFile,
     tenant_id: UUID | None = None,
@@ -175,7 +175,7 @@ async def wraith_stream(
             pass
 
 @router.get("/wraith/status")
-async def get_wraith_status( 
+async def get_wraith_status(
     creator: CreatorDep,
     _: APIKeyDep,
     avatar_id: UUID

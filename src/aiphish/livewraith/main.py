@@ -25,7 +25,7 @@ from aiphish.livewraith.server.sessions import SessionManager
 
 from aiphish.livewraith.wraithmuse.wraithmuse_types import WraithOpt
 
-from aiphish.livewraith.server.musetalk import load_model
+from aiphish.livewraith.server.musetalk import load_model, AvatarCreator
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):   # pylint: disable=redefined-outer-name
@@ -58,8 +58,9 @@ async def lifespan(app: FastAPI):   # pylint: disable=redefined-outer-name
     )
     app.state.db_session_maker = session_maker
 
-    session_mgr = SessionManager()
-    app.state.session_mgr = session_mgr
+    app.state.session_mgr = SessionManager()
+
+    app.state.creator = AvatarCreator()
 
     app.state.model = load_model()
     app.state.avatars = {}

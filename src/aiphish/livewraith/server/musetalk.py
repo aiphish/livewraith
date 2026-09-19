@@ -112,9 +112,10 @@ class WraithCreated(BaseModel):
 
 class WraithCreationStatus(BaseModel):
     status: str
-    progress: str
+    progress: float
     stage: str
-    error_msg: str
+    stage_progress: float
+    error_msg: str | None
 
 class AvatarPaths(NamedTuple):
     """
@@ -463,7 +464,7 @@ class AvatarCreator:
             wraith_id=avatar_id,
             path=paths.root
         )
-    
+
     def create_status(
         self,
         avatar_id: UUID,
@@ -472,24 +473,23 @@ class AvatarCreator:
         Returns the creation status of the referenced wraith.
         """
 
-        current_stage = self._progress[avatar_id]
+        current_stage = self._progress.get(avatar_id, 0)
 
         if current_stage < 6:
-            current_stage + 1
+            current_stage += 1
         
         stage_desc = self._progress_map.get(current_stage, 0)
             
         if current_stage >= 1000:
-            error_reason = self._error_reason[avatar_id]
+            error_reason = self._error_reason.get(avatar_id, "")
         else:
             error_reason = None
         
         return WraithCreationStatus(
             status= "ready" if current_stage == 6 else "not ready",
-            progress=self._status_percent,
-            stage=current_stage,
+            progress=self._status_percent.get(avatar_id, 0.0),
             stage=stage_desc,
-            stage_progress=self._subprogress_percent,
+            stage_progress=self._subprogress_percent.get(avatar_id, 0.0),
             error_msg=error_reason
         )
     
