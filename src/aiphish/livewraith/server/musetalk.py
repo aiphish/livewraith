@@ -311,7 +311,7 @@ class AvatarCreator:
             y2 = min(y2, frame.shape[0])
             coord_list[idx] = [x1, y1, x2, y2]
             crop_frame = frame[y1:y2, x1:x2]
-            resized_crop_frame = cv2.resize(crop_frame, (256, 256), interpolation=cv2.INTER_LANCZOS4)
+            resized_crop_frame = cv2.resize(crop_frame, (256, 256), interpolation=cv2.INTER_LANCZOS4) # pylint: disable=no-member
             latents = vae_local.get_latents_for_unet(resized_crop_frame).half() # half to convert back when using cpu
             input_latent_list.append(latents)
 
@@ -337,7 +337,7 @@ class AvatarCreator:
         for i, frame in enumerate(frame_list):
             x1, y1, x2, y2 = coord_list[i]
             mask, crop_box = get_image_prepare_material(frame, [x1, y1, x2, y2], fp=fp_local, mode=parsing_mode)
-            cv2.imwrite(f"{paths.mask}/{str(i).zfill(8)}.png", mask)
+            cv2.imwrite(f"{paths.mask}/{str(i).zfill(8)}.png", mask) # pylint: disable=no-member
 
             mask_coords_list_cycle.append(crop_box)
 
