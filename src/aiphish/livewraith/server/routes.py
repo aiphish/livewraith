@@ -178,11 +178,31 @@ async def wraith_stream(
 async def get_wraith_status( 
     creator: CreatorDep,
     _: APIKeyDep,
-    avatar_id: UUID | None = None
+    avatar_id: UUID
 ) -> WraithCreationStatus:
     """
     Polls the status of the wraith creation process to determine if a wraith is ready for
     streaming.
     """
     return creator.create_status(avatar_id=avatar_id)
+
+@router.get("/wraith/delete", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_wrath(
+    creator: CreatorDep,
+    cfg: ConfigDep,
+    _: APIKeyDep,
+    avatar_id: UUID,
+    tenant_id: UUID | None = None,
+    org_id: UUID | None = None
+) -> None:
+    """
+    Deletes the Wraith avatar files and ID ref. Does not stop any ongoing inference or unload ram.
+    """
+    
+    await creator.delete_wraith(
+        avatar_id=avatar_id,
+        tenant_id=tenant_id,
+        org_id=org_id,
+        avatar_path=cfg.AVATAR_FOLDER,
+    )
 

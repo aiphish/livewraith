@@ -180,9 +180,6 @@ class AvatarCreator:
         
         if avatar_path is not None and os.path.exists(avatar_path):
             shutil.rmtree(avatar_path, ignore_errors=True)
-        
-        if temp_video_path is None and os.path.exists(temp_video_path):
-            os.remove(temp_video_path)
     
     def _create_directories(
         self,
@@ -198,8 +195,8 @@ class AvatarCreator:
         tenant_id_str = str(tenant_id) if tenant_id else None
         avatar_id_str = str(avatar_id)
 
-        if not os.path.exists(save_path):
-            save_path = "/aiphish/livewraith/avatars"
+        if not os.path.exists(avatar_save_path):
+            avatar_save_path = "/aiphish/livewraith/avatars"
         
         avatar_save_path = os.path.join(avatar_save_path, org_id_str) if org_id else avatar_save_path
         avatar_save_path = os.path.join(avatar_save_path, tenant_id_str) if tenant_id else avatar_save_path
@@ -353,8 +350,8 @@ class AvatarCreator:
         self,
         avatar_id: UUID,
         videofile_path: str,
-        tenant_id: UUID,
-        org_id: UUID,
+        tenant_id: UUID | None,
+        org_id: UUID | None,
         save_path: str = "/aiphish/livewraith/avatars",
         bbox_shift: int = 0,
         extra_margin: int = 10,
@@ -495,5 +492,31 @@ class AvatarCreator:
             stage_progress=self._subprogress_percent,
             error_msg=error_reason
         )
+    
+    async def delete_wraith(
+        self,
+        avatar_id: UUID,
+        avatar_path: str | None,
+        tenant_id: UUID | None,
+        org_id: UUID | None,
+    ) -> None:
+        """
+        Deletes the Wraith avatar files and ID ref. Does not stop any ongoing inference or unload ram.
+        """
 
+        org_id_str = str(org_id) if org_id else None
+        tenant_id_str = str(tenant_id) if tenant_id else None
+        avatar_id_str = str(avatar_id)
+
+        if not os.path.exists(avatar_path):
+            avatar_path = "/aiphish/livewraith/avatars"
+        
+        avatar_path = os.path.join(avatar_path, org_id_str) if org_id else avatar_path
+        avatar_path = os.path.join(avatar_path, tenant_id_str) if tenant_id else avatar_path
+        avatar_path = os.path.join(avatar_path, avatar_id_str)
+
+        if os.path.exists(avatar_path):
+            shutil.rmtree(avatar_path, ignore_errors=True)
+        
+        
 
