@@ -12,7 +12,7 @@ class VAE():
     VAE (Variational Autoencoder) class for image processing.
     """
 
-    def __init__(self, model_path="./models/sd-vae-ft-mse/", resized_img=256, use_float16=False):
+    def __init__(self, model_path="./models/sd-vae/", resized_img=256, use_float16=False):
         """
         Initialize the VAE instance.
 

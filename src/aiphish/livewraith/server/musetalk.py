@@ -49,7 +49,7 @@ def load_model():
     pe = pe.half().to(device)
     vae.vae = vae.vae.half().to(device)
     unet.model = unet.model.half().to(device)
-    audio_processor = A2F(model_path="./models/whisper") #pylint: disable=not-callable
+    audio_processor = A2F(model_path="/aiphish/livewraith/models/whisper") #pylint: disable=not-callable
     return vae, unet, pe, timesteps, audio_processor
 
 def load_avatar(avatar_id: UUID, tenant_id: UUID, org_id: UUID, avatar_root: str):

@@ -57,8 +57,8 @@ class FaceParsing():
         return mask
 
     def model_init(self, 
-                   resnet_path='./models/face-parse-bisent/resnet18-5c106cde.pth', 
-                   model_pth='./models/face-parse-bisent/79999_iter.pth'):
+                   resnet_path='/aiphish/livewraith/models/face-parse-bisent/resnet18-5c106cde.pth', 
+                   model_pth='/aiphish/livewraith/models/face-parse-bisent/79999_iter.pth'):
         net = BiSeNet(resnet_path)
         if torch.cuda.is_available():
             net.cuda()

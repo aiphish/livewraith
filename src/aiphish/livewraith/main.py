@@ -1,11 +1,17 @@
 #######################################################################################################
-### Live streaming Wraith for the aiphish platform.
+### Live streaming Wraith for the Aiphish platform (https://aiphish.ing).
 ### This app takes recieves TTS output and generates the deepfake video frames
 ### to match what the TTS output says. Data is streamed in over websocket and out
-### over webRTC. 
+### over webRTC.
 ### Additionally, this app creates the cloned video identities for use with the livestream endpoints.
 ###
-### This repo adapts code from https://github.com/lipku/LiveTalking/ published under Apache 2.0 
+### The Aiphish LiveWraith code is published under the AGPL-3.0 License: https://github.com/aiphish/livewraith
+### Use of Aiphish LiveWraith or any projects is only permitted in accordance with our acceptable use
+### policy. https://aiphish.ing/acceptable-use
+###
+### This repo references code or methods from: 
+### https://github.com/TMElyralab/MuseTalk published under the MIT License
+### https://github.com/lipku/LiveTalking/ published under the Apache 2.0
 ########################################################################################################
 
 import asyncio

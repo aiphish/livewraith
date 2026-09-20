@@ -13,13 +13,13 @@ from aiphish.livewraith.musetalk.models.unet import UNet,PositionalEncoding
 
 
 def load_all_model(
-    unet_model_path=os.path.join("models", "musetalkV15", "unet.pth"),
+    unet_model_path="/aiphish/livewraith/models/musetalkV15/unet.pth",
     vae_type="sd-vae",
-    unet_config=os.path.join("models", "musetalkV15", "musetalk.json"),
+    unet_config="/aiphish/livewraith/models/musetalkV15/musetalk.json",
     device=None,
 ):
     vae = VAE(
-        model_path = os.path.join("models", vae_type),
+        model_path = os.path.join("/aiphish/livewraith/models", vae_type),
     )
     print(f"load unet model from {unet_model_path}")
     unet = UNet(

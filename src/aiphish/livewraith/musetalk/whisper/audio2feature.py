@@ -13,7 +13,7 @@ weight_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
 class Audio2Feature():
     def __init__(self, 
                  whisper_model_type="tiny",
-                 model_path="./models/whisper"):
+                 model_path="/aiphish/livewraith/models/whisper"):
         # self.whisper_model_type = whisper_model_type
         # self.model = load_model(model_path) #
         self.feature_extractor = AutoFeatureExtractor.from_pretrained(model_path)
