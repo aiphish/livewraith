@@ -53,6 +53,12 @@ RUN mkdir -p /aiphish/livewraith/avatars \
              /aiphish/livewraith/db \
              /aiphish/livewraith/tempfiles
 
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL -o /usr/local/bin/cloudflared \
+    https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
+    && chmod +x /usr/local/bin/cloudflared
+
 RUN useradd -r -u 1000 aiphish && chown -R aiphish:aiphish /aiphish/livewraith
 
 ## --- Production Stage --- ##
@@ -77,9 +83,14 @@ RUN useradd -r -u 1000 aiphish
 
 COPY --from=builder /build/models /aiphish/livewraith/models
 
+COPY --from=install /usr/local/bin/cloudflared /usr/local/bin/cloudflared
+
 WORKDIR /aiphish/livewraith
 
 USER aiphish
 
-CMD ["uvicorn", "aiphish.livewraith.main:app", "--port", "8080", "--host", "0.0.0.0", "--proxy-headers", "--forwarded-allow-ips=172.16.0.0/12"]
+COPY --chmod=755 start.sh /aiphish/livewraith/start.sh
+
+CMD ["/aiphish/livewraith/start.sh"]
+#CMD ["uvicorn", "aiphish.livewraith.main:app", "--port", "8080", "--host", "0.0.0.0", "--proxy-headers", "--forwarded-allow-ips=172.16.0.0/12"]
 
