@@ -23,3 +23,9 @@ snapshot_download(
     allow_patterns=["resnet18-5c106cde.pth", "79999_iter.pth"],
     local_dir="/build/models/face-parse-bisent",
 )
+
+snapshot_download(
+    repo_id="n0x1103/s3fd",
+    allow_patterns=["s3fd-619a316812.pth"],
+    local_dir="/build/models/s3fd",
+)

@@ -17,7 +17,8 @@ RUN python download_models.py && find /build/models -name ".cache" -type d -prun
 RUN test -f /build/models/musetalkV15/unet.pth && \
     test -f /build/models/sd-vae/diffusion_pytorch_model.safetensors && \
     test -f /build/models/whisper/config.json && \
-    test -f /build/models/face-parse-bisent/79999_iter.pth
+    test -f /build/models/face-parse-bisent/79999_iter.pth \
+    test -f /build/models/s3fd/s3fd-619a316812.pth
 
 RUN mkdir -p /wheelhouse
 
@@ -47,6 +48,13 @@ COPY --from=builder /wheelhouse /wheelhouse
 RUN uv venv /opt/venv \
     && uv pip install --python /opt/venv/bin/python --no-index --find-links /wheelhouse aiphish-livewraith
 
+RUN mkdir -p /aiphish/livewraith/avatars \
+             /aiphish/livewraith/models \
+             /aiphish/livewraith/db \
+             /aiphish/livewraith/tempfiles
+
+RUN useradd -r -u 1000 aiphish && chown -R aiphish:aiphish /aiphish/livewraith
+
 ## --- Production Stage --- ##
 
 FROM python:3.12-slim-trixie AS production
@@ -61,16 +69,15 @@ COPY --from=install /opt/venv /opt/venv
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN mkdir -p /aiphish/livewraith/avatars \
-             /aiphish/livewraith/models \
-             /aiphish/livewraith/db \
-             /aiphish/livewraith/tempfiles
+ENV S3FD_WEIGHTS="/aiphish/livewraith/models/s3fd/s3fd-619a316812.pth"
+
+COPY --from=install /aiphish /aiphish
+
+RUN useradd -r -u 1000 aiphish
 
 COPY --from=builder /build/models /aiphish/livewraith/models
 
 WORKDIR /aiphish/livewraith
-
-RUN useradd -r -u 1000 aiphish && chown -R aiphish:aiphish /aiphish/livewraith
 
 USER aiphish
 
