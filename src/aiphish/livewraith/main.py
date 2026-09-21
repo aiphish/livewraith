@@ -64,7 +64,8 @@ async def lifespan(app: FastAPI):   # pylint: disable=redefined-outer-name
     )
     app.state.db_session_maker = session_maker
 
-    app.state.session_mgr = SessionManager()
+    session_mgr = SessionManager()
+    app.state.session_mgr = session_mgr
 
     app.state.creator = AvatarCreator()
 
@@ -75,8 +76,8 @@ async def lifespan(app: FastAPI):   # pylint: disable=redefined-outer-name
 
     yield
 
-    await db_engine.dispose()
     await session_mgr.close_all()
+    await db_engine.dispose()
 
 def create_app(cfg: LiveWraithConfig) -> FastAPI:
     """
