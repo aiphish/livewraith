@@ -84,7 +84,7 @@ async def create_rtc_offer(
     offer_result.pipeline.start()
     return {"sdp": offer_result.sdp, "type": offer_result.type}
 
-@router.post("/wraith/create", status_code=status.HTTP_202_CREATED)
+@router.post("/wraith/create", status_code=status.HTTP_202_ACCEPTED)
 async def create_wraith(
     creator: CreatorDep,
     _: APIKeyDep,
