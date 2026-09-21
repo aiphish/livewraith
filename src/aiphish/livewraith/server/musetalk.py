@@ -20,8 +20,7 @@ from aiphish.livewraith.wraithmuse.utils import read_imgs
 
 from aiphish.livewraith.musetalk.utils.utils import load_all_model
 from aiphish.livewraith.musetalk.models.vae import VAE
-from aiphish.livewraith.musetalk.whisper import audio2feature as A2F
-
+from aiphish.livewraith.musetalk.whisper.audio2feature import Audio2Feature as A2F
 
 
 from aiphish.livewraith.musetalk.utils.preprocessing import get_landmark_and_bbox
