@@ -17,7 +17,7 @@ RUN python download_models.py && find /build/models -name ".cache" -type d -prun
 RUN test -f /build/models/musetalkV15/unet.pth && \
     test -f /build/models/sd-vae/diffusion_pytorch_model.safetensors && \
     test -f /build/models/whisper/config.json && \
-    test -f /build/models/face-parse-bisent/79999_iter.pth \
+    test -f /build/models/face-parse-bisent/79999_iter.pth && \
     test -f /build/models/s3fd/s3fd-619a316812.pth
 
 RUN mkdir -p /wheelhouse
