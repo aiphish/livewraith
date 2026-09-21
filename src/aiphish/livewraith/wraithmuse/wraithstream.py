@@ -12,7 +12,6 @@ from numpy.typing import NDArray
 import cv2
 
 from aiphish.livewraith.wraithmuse.utils import mirror_index, SampleReassembler, AudioFrameData
-from aiphish.livewraith.musetalk.myutil import get_image_blending
 from aiphish.livewraith.wraithmuse.whisperasr import WhisperASR
 from aiphish.livewraith.wraithmuse.wraithmuse_types import WraithAvatar, WraithModel, WraithOpt
 from aiphish.livewraith.wraithmuse.wraithoutput import WraithOutput
@@ -255,10 +254,32 @@ class WraithPipeline:
         process_quit_event.set()
         process_thread.join()
     
+    def get_image_blending(
+        self,
+        image,
+        face,
+        face_box,
+        mask_array,
+        crop_box
+    ):
+        body = image
+        x, y, x1, y1 = face_box
+        x_s, y_s, x_e, y_e = crop_box
+        face_large = body[y_s:y_e, x_s:x_e].copy()
+        face_large[y-y_s:y1-y_s, x-x_s:x1-x_s]=face
+
+        mask_image = cv2.cvtColor(mask_array,cv2.COLOR_BGR2GRAY)
+        mask_image = (mask_image/255).astype(np.float32)
+        
+        body[y_s:y_e, x_s:x_e] = cv2.blendLinear(face_large,body[y_s:y_e, x_s:x_e],mask_image,1-mask_image)
+
+        return body
+    
     @torch.no_grad()
     def inference_batch(self, index, audiofeat_batch):
-        # 这里的 index 是针对当前 avatar 的索引
-        # 返回一个 batch 的推理结果，batch 大小由 self.batch_size 决定
+        # Index refers to the index of the current avatar
+        # Returns the inference results for each batch. Batch size is determined by
+        # self.batch_size.
         length = len(self.input_latent_list_cycle)
         whisper_batch = np.stack(audiofeat_batch)
         latent_batch = []
@@ -289,7 +310,7 @@ class WraithPipeline:
         mask = self.mask_list_cycle[idx]
         mask_crop_box = self.mask_coords_list_cycle[idx]
 
-        combine_frame = get_image_blending(ori_frame,res_frame,bbox,mask,mask_crop_box)
+        combine_frame = self.get_image_blending(ori_frame,res_frame,bbox,mask,mask_crop_box)
         return combine_frame
 
     
