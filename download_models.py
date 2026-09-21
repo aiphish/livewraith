@@ -14,7 +14,7 @@ snapshot_download(
 
 snapshot_download(
     repo_id="openai/whisper-tiny",
-    allow_patterns=["config.json", "pytorch_model.bin", "preprocessor_config.json"],
+    allow_patterns=["config.json", "model.safetensors", "preprocessor_config.json"],
     local_dir="/build/models/whisper",
 )
 
