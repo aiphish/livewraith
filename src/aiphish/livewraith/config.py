@@ -98,8 +98,6 @@ class LiveWraithConfig(BaseSettings):
     EXTRA_MARGIN: int = 10
     PARSING_MODE: str ='jaw'
 
-    ENABLE_TUNNEL: bool = True
-
     @computed_field
     @property
     def DEBUG(self) -> bool:
