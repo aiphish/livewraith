@@ -34,9 +34,9 @@ WORKDIR /build/livewraith
 COPY . /build/livewraith/
 RUN uv build --wheel && cp dist/*.whl /wheelhouse/
 
-## --- Production Stage --- ##
+## --- Install Stage --- ##
 
-FROM python:3.12-slim-trixie AS production
+FROM python:3.12-slim-trixie AS install
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
@@ -44,19 +44,35 @@ ENV UV_COMPILE_BYTECODE=1
 
 COPY --from=builder /wheelhouse /wheelhouse
 
-RUN uv pip install --system --no-index --find-links /wheelhouse aiphish-livewraith
+RUN uv venv /opt/venv \
+    && uv pip install --python /opt/venv/bin/python --no-index --find-links /wheelhouse aiphish-livewraith
 
-RUN mkdir -p /aiphish/livewraith/avatars
+## --- Production Stage --- ##
 
-RUN mkdir -p /aiphish/livewraith/models
+FROM python:3.12-slim-trixie AS production
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ffmpeg \
+        libsndfile1 \
+        libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=install /opt/venv /opt/venv
+
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN mkdir -p /aiphish/livewraith/avatars \
+             /aiphish/livewraith/models \
+             /aiphish/livewraith/db \
+             /aiphish/livewraith/tempfiles
 
 COPY --from=builder /build/models /aiphish/livewraith/models
 
-RUN mkdir -p /aiphish/livewraith/db
-
-RUN mkdir -p /aiphish/livewraith/tempfiles
-
 WORKDIR /aiphish/livewraith
 
-CMD ["uvicorn", "aiphish.livewraith.main:app", "--port", "80", "--host", "0.0.0.0", "--proxy-headers", "--forwarded-allow-ips=172.16.0.0/12"]
+RUN useradd -r -u 1000 aiphish && chown -R aiphish:aiphish /aiphish/livewraith
+
+USER aiphish
+
+CMD ["uvicorn", "aiphish.livewraith.main:app", "--port", "8080", "--host", "0.0.0.0", "--proxy-headers", "--forwarded-allow-ips=172.16.0.0/12"]
 
