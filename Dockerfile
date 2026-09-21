@@ -21,6 +21,9 @@ RUN test -f /build/models/musetalkV15/unet.pth && \
 
 RUN mkdir -p /wheelhouse
 
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential cmake \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY pyproject.toml uv.lock /build/livewraith/
 
 WORKDIR /build/livewraith
