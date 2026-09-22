@@ -38,6 +38,6 @@ jobs:
           ghcr.io/aiphish/livewraith:latest
           ghcr.io/aiphish/livewraith:0.0.1
           ghcr.io/aiphish/livewraith:${{ github.sha }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
    
