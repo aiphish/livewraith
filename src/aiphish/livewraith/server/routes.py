@@ -40,7 +40,7 @@ router = APIRouter(
 
 @router.post("/offer")
 async def create_rtc_offer(
-    avatar_id: str,
+    wraith_id: str,
     avatar: AvatarDep,
     session_manager: SessionDep,
     model: ModelDep,
@@ -52,6 +52,7 @@ async def create_rtc_offer(
 ):
     """
     Initiates the webRTC connection
+    wraith: the wraith ID returned from creating a wraith avatar.
     """
 
     offer_result = await rtc_offer(
@@ -64,7 +65,7 @@ async def create_rtc_offer(
     session_manager.new_session(
         {
             "id": offer_result.peer_id,
-            "avatar_id": avatar_id,
+            "avatar_id": wraith_id,
             "key_hash": api_key_hash,
             "pipeline": offer_result.pipeline,
             "peer_conn": offer_result.peer_conn,

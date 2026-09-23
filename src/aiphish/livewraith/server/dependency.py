@@ -30,7 +30,7 @@ ModelDep = Annotated[WraithModel, Depends(get_model)]
 
 async def get_avatar(
     request: Request,
-    avatar_id: UUID,
+    wraith_id: UUID,
     tenant_id: UUID,
     org_id: UUID,
 ) -> WraithAvatar:
@@ -41,18 +41,18 @@ async def get_avatar(
     lock: asyncio.Lock = request.app.state.avatar_lock
     cfg = request.app.state.cfg
     avatar_path = cfg.AVATAR_FOLDER
-    if avatar_id in cache:
-        return cache[avatar_id]
+    if wraith_id in cache:
+        return cache[wraith_id]
     async with lock:
         try:
-            cache[avatar_id] = await asyncio.to_thread(
-                load_avatar, avatar_id, tenant_id, org_id, avatar_path
+            cache[wraith_id] = await asyncio.to_thread(
+                load_avatar, wraith_id, tenant_id, org_id, avatar_path
             )
         except FileNotFoundError as e:
-            logger.warning("avatar not found: %s (%s)", avatar_id, e)
-            raise HTTPException(status_code=404, detail=f"avatar not found: {avatar_id}") from e
+            logger.warning("avatar not found: %s (%s)", wraith_id, e)
+            raise HTTPException(status_code=404, detail=f"avatar not found: {wraith_id}") from e
         
-    return cache[avatar_id]
+    return cache[wraith_id]
 
 AvatarDep = Annotated[WraithAvatar, Depends(get_avatar)]
 
