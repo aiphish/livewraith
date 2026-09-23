@@ -199,7 +199,7 @@ async def delete_wrath(
     """
     Deletes the Wraith avatar files and ID ref. Does not stop any ongoing inference or unload ram.
     """
-    
+
     await creator.delete_wraith(
         avatar_id=wraith_id,
         tenant_id=tenant_id,
