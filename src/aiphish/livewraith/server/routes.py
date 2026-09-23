@@ -83,7 +83,7 @@ async def create_rtc_offer(
             session_manager.remove_session(offer_result.peer_id)
     
     offer_result.pipeline.start()
-    return {"sdp": offer_result.sdp, "type": offer_result.type}
+    return {"sdp": offer_result.sdp, "type": offer_result.type, "pc_id": offer_result.peer_id}
 
 @router.post("/wraith/create", status_code=status.HTTP_202_ACCEPTED)
 async def create_wraith(
