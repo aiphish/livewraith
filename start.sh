@@ -14,3 +14,4 @@ if [ "$ENABLE_TUNNEL" = "true" ]; then
 fi
 
 exec uvicorn aiphish.livewraith.main:app --port "$PORT" --host 0.0.0.0
+
