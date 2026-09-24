@@ -1,17 +1,27 @@
 # syntax=docker/dockerfile:1
 
-## --- Builder Stage --- ##
+## --- Base Builder Stage --- ##
 
-FROM python:3.12-slim-trixie AS builder
+FROM python:3.12-slim-trixie AS base
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.12.18@sha256:3adc3706091ce7c2fe595e669628caedd6d951551b92b258b7e7dbe06d9440bc /uv /usr/local/bin/uv
 
 ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+ENV UV_PYTHON_DOWNLOADS=never
+
+
+## --- Model Downloader Stage --- ##
+
+FROM base AS models
 
 WORKDIR /build
 
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system "huggingface_hub>=0.23"
+
 COPY download_models.py /build
-RUN uv pip install --system --no-cache-dir huggingface_hub>=0.23
+
 RUN python download_models.py && find /build/models -name ".cache" -type d -prune -exec rm -rf {} +
 
 RUN test -f /build/models/musetalkV15/unet.pth && \
@@ -20,46 +30,26 @@ RUN test -f /build/models/musetalkV15/unet.pth && \
     test -f /build/models/face-parse-bisent/79999_iter.pth && \
     test -f /build/models/s3fd/s3fd-619a316812.pth
 
-RUN mkdir -p /wheelhouse
+## --- Deps Installer Stage --- ##
+# Builds venv at /opt/venv with all dependencies and livewraith package
+
+FROM base AS deps
 
 RUN apt-get update && apt-get install -y --no-install-recommends build-essential cmake \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml uv.lock /build/livewraith/
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 
-WORKDIR /build/livewraith
-RUN uv export --locked --no-dev --no-emit-workspace --no-editable --format requirements.txt > requirements.txt 
-RUN pip wheel --wheel-dir /wheelhouse --extra-index-url https://download.pytorch.org/whl/cu121 -r requirements.txt
+WORKDIR /app
 
-WORKDIR /build/livewraith
-COPY . /build/livewraith/
-RUN uv build --wheel && cp dist/*.whl /wheelhouse/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-dev --no-install-project --no-editable
 
-## --- Install Stage --- ##
-
-FROM python:3.12-slim-trixie AS install
-
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
-
-ENV UV_COMPILE_BYTECODE=1
-
-COPY --from=builder /wheelhouse /wheelhouse
-
-RUN uv venv /opt/venv \
-    && uv pip install --python /opt/venv/bin/python --no-index --find-links /wheelhouse aiphish-livewraith
-
-RUN mkdir -p /aiphish/livewraith/avatars \
-             /aiphish/livewraith/models \
-             /aiphish/livewraith/db \
-             /aiphish/livewraith/tempfiles
-
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
-
-RUN curl -fsSL -o /usr/local/bin/cloudflared \
-    https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
-    && chmod +x /usr/local/bin/cloudflared
-
-RUN useradd -r -u 1000 aiphish && chown -R aiphish:aiphish /aiphish/livewraith
+COPY . .
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev --no-editable
 
 ## --- Production Stage --- ##
 
@@ -71,26 +61,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=install /opt/venv /opt/venv
+RUN useradd -r -u 1000 aiphish \
+    && mkdir -p /aiphish/livewraith/avatars \
+                /aiphish/livewraith/models \
+                /aiphish/livewraith/db \
+                /aiphish/livewraith/tempfiles \
+    && chown -R aiphish:aiphish /aiphish/livewraith
 
 ENV PATH="/opt/venv/bin:$PATH"
-
 ENV S3FD_WEIGHTS="/aiphish/livewraith/models/s3fd/s3fd-619a316812.pth"
 
-COPY --from=install /aiphish /aiphish
-
-RUN useradd -r -u 1000 aiphish
-
-COPY --from=builder /build/models /aiphish/livewraith/models
-
-COPY --from=install /usr/local/bin/cloudflared /usr/local/bin/cloudflared
+COPY --from=cloudflare/cloudflared:2026.9.1 /usr/local/bin/cloudflared /usr/local/bin/cloudflared
+COPY --from=models --chown=aiphish:aiphish /build/models /aiphish/livewraith/models
+COPY --from=deps /opt/venv /opt/venv
+COPY --chmod=755 start.sh /aiphish/livewraith/start.sh
 
 WORKDIR /aiphish/livewraith
 
 USER aiphish
 
-COPY --chmod=755 start.sh /aiphish/livewraith/start.sh
-
 CMD ["/aiphish/livewraith/start.sh"]
 #CMD ["uvicorn", "aiphish.livewraith.main:app", "--port", "8080", "--host", "0.0.0.0", "--proxy-headers", "--forwarded-allow-ips=172.16.0.0/12"]
-

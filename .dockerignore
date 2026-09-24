@@ -1,0 +1,8 @@
+.git
+.venv
+models/
+tempfiles/
+dist/
+__pycache__/
+*.pyc
+.env
