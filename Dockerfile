@@ -31,7 +31,7 @@ RUN test -f /build/models/musetalkV15/unet.pth && \
     test -f /build/models/s3fd/s3fd-619a316812.pth
 
 ## --- Deps Installer Stage --- ##
-# Builds venv at /opt/venv with all dependencies and livewraith package
+# Builds venv at /opt/venv with all third-party dependencies
 
 FROM base AS deps
 
@@ -47,9 +47,17 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-dev --no-install-project --no-editable
 
-COPY . .
+## --- Project Installer Stage --- ##
+
+FROM base AS project
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock README.md ./
+COPY src/ src/
+
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev --no-editable
+    uv build --wheel --out-dir /dist
 
 ## --- Production Stage --- ##
 
@@ -74,7 +82,15 @@ ENV S3FD_WEIGHTS="/aiphish/livewraith/models/s3fd/s3fd-619a316812.pth"
 COPY --from=cloudflare/cloudflared:2026.9.1 /usr/local/bin/cloudflared /usr/local/bin/cloudflared
 COPY --from=models --chown=aiphish:aiphish /build/models /aiphish/livewraith/models
 COPY --from=deps /opt/venv /opt/venv
+
+RUN --mount=from=ghcr.io/astral-sh/uv:0.12.18@sha256:3adc3706091ce7c2fe595e669628caedd6d951551b92b258b7e7dbe06d9440bc,source=/uv,target=/usr/local/bin/uv \
+    --mount=from=project,source=/dist,target=/dist \
+    UV_COMPILE_BYTECODE=1 uv pip install --no-cache --python /opt/venv/bin/python --no-deps /dist/*.whl
+
+COPY LICENSE /aiphish/livewraith/LICENSE
 COPY --chmod=755 start.sh /aiphish/livewraith/start.sh
+
+
 
 WORKDIR /aiphish/livewraith
 
