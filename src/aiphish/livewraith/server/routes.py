@@ -86,8 +86,7 @@ async def create_rtc_offer(
             await pc.close()
             offer_result.pipeline.stop()
             session_manager.remove_session(offer_result.peer_id)
-    
-    offer_result.pipeline.start()
+
     return {"sdp": offer_result.sdp, "type": offer_result.type, "pc_id": offer_result.peer_id}
 
 @router.post("/wraith/create", status_code=status.HTTP_202_ACCEPTED)
@@ -163,6 +162,8 @@ async def wraith_stream(
     try:
         while True:
             data = await ws.receive()
+            if data["type"] == "websocket.disconnect":
+                break
             if "bytes" in data:
                 session.pipeline.push_pcm(data["bytes"])
             elif "text" in data:
