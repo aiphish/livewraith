@@ -33,7 +33,7 @@ LiveWraith injests PCM_16000 audio data over a websocket connection and returns 
 LiveWraith works best on a machine with nvidia V100, RTX 4090, RTX 5090 or better graphics cards running CUDA 12.1.
 
 The resulting stream is transfered via a WebRTC connection. As such, the server must accept UDP connections and be reachable for the WebRTC negotiation process (either direct or with STUN/TURN). The
-LiveWraith container deployment is built with a Cloudflare tunnel that can be enabled with ENABLE_TUNNEL=true. This allows the service to be run on GPU rental sites such as Vast.ai. Please
+LiveWraith container deployment is built with a Cloudflare tunnel if a direct WebRTC connection is not possible. This allows the service to be run on GPU rental sites such as Vast.ai. Please
 see the deployment section for more information.
 
 <h2 id="s4">Deployment</h2>
@@ -44,19 +44,14 @@ https://ghcr.io/aiphish/livewraith
 
 Currently, this container only uses local storage for storing Wraiths (cloned identity files). Comaptibility with remote storage is in development.
 
-By default the container will be deployed in DEBUG mode. This can be disabled with:
-
-DEBUG=false
+By default the container will be deployed in DEBUG mode. This can be disabled with `DEBUG=false`.
 
 Auth is handled through an Bearer token. All requests to the server (including websocket) must include the
-auth header:
-Authorization Bearer <token>
+auth header: `Authorization Bearer <token>`
 
 An API key can be set in the container parameters. If the server is started in DEBUG mode, and a key is not provided, one will be generated on startup and can be found in the logs. This should not be used for production deployments. Debug logs are not sanitized.
 
-LiveWraith must have access to the system's GPU. If running on an on-prem deployment use docker flag:
-
--gpus=all or declare a device.
+LiveWraith must have access to the system's GPU. If running on an on-prem deployment use docker flag `-gpus=all` or declare a device.
 
 For cloud GPU deployments, consult the providers documentation. Vast.ai, which automatically passes the GPU through to the container, is discussed below for reference.
 
@@ -102,7 +97,7 @@ If no tunnel token is provided, the tunnel will default to Cloudflare's free tun
 LiveWaith uses an API key to validate requests to the server for all endpoints. LiveWraith is designed to
 be used as a backend service in combination with Aiphish managing authorization. For this reason, all API keys have full access to all Wraith's created on the service (no tenant or organization isolation).
 
-API keys can be set on container startup using the **API_KEYS** environment variable which takes in a list
+API keys can be set on container startup using the `*API_KEYS` environment variable which takes in a list
 of keys: <br>
 
 `docker run -e API_KEYS='["key1", "key2", "key3"]'`
@@ -117,7 +112,7 @@ If running in DEBUG mode (default setup), the container will first check this en
 
 This mode should only be used for testing in development and not for production. 
 
-<h2 id="s6">Creating a Wraith (Cloned identity)</h2>
+<h2 id="s6">Creating a Wraith (Cloned Identity)</h2>
 
 A Wraith is created using the `/wraith/create` endpoint. Lipsyncing services work by painting a 
 mouth over a looped video. This looping video works best if it's 10-20 seconds of a neutral expression looking
@@ -132,9 +127,9 @@ For more information and guidance see the <a href="https://doc.aiphish.ing">docs
 
 <h2 id="s7"> Client connection</h2>
 
-This service is designed to work seamlessly with the Aiphish framework. If you wish to use it as a standalone service, reference scripts are provided at:
-https://github.com/aiphish/livewraith/client_examples/create_wraith.py
-https://github.com/aiphish/livewraith/client_examples/stream_wraith.py
+This service is designed to work seamlessly with the Aiphish framework. If you wish to use it as a standalone service, reference scripts are provided at:  <br>
+* https://github.com/aiphish/livewraith/client_examples/create_wraith.py 
+* https://github.com/aiphish/livewraith/client_examples/stream_wraith.py
 
 The example streaming script saves the generated video stream to a file.
 
