@@ -79,8 +79,9 @@ be enabled with the **ENABLE_TUNNEL** environment variable.
 | **Docker Image Path** | `ghcr.io/aiphish/livewraith:latest` |
 | **Docker Options** | `-e ENABLE_TUNNEL=true` |
 | **Launch Mode** | `EntryPoint` |
-| **Disk Size** | Depends on how many Wraiths you intend to create and how long each reference video is. Aiphish uses a 15 second 720p reference video which equates to 1-2GB per Wraith.
+| **Disk Size** | A 15 second 720p reference video equates to 1-2GB per Wraith.*
 
+* Depends on how many Wraiths you intend to create and how long each reference video is. 
 ### Cloudflare Tunnel Config:
 
 To connect to a custom Cloudflare tunnel domain, first set up the domain in your Cloudflare account. Then
