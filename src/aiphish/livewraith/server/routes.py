@@ -17,7 +17,7 @@ from fastapi import (
     UploadFile
 )
 
-from aiphish.livewraith.server.auth import verify_api_key, APIKeyDep
+from aiphish.livewraith.server.auth import verify_api_key, verify_api_key_ws, APIKeyDep
 from aiphish.livewraith.server.sessions import SessionNotFoundError
 from aiphish.livewraith.server.dependency import (
     SessionDep,
@@ -35,6 +35,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter(
     dependencies=[
         Depends(verify_api_key)
+    ]
+)
+ws_router = APIRouter(
+    dependencies=[
+        Depends(verify_api_key_ws)
     ]
 )
 
@@ -88,7 +93,6 @@ async def create_rtc_offer(
 @router.post("/wraith/create", status_code=status.HTTP_202_ACCEPTED)
 async def create_wraith(
     creator: CreatorDep,
-    _: APIKeyDep,
     cfg: ConfigDep,
     video: UploadFile,
     tenant_id: UUID | None = None,
@@ -135,11 +139,10 @@ async def create_wraith(
 
     return {"wraith_id": wraith_id}
 
-@router.websocket("/wraith/stream")
+@ws_router.websocket("/wraith/stream")
 async def wraith_stream(
     ws: WebSocket,
     session_manager: SessionDep,
-    _: APIKeyDep,
     pc_id: UUID,
     tenant_id: UUID | None = None,
     org_id: UUID | None = None
@@ -178,7 +181,6 @@ async def wraith_stream(
 @router.get("/wraith/status")
 async def get_wraith_status(
     creator: CreatorDep,
-    _: APIKeyDep,
     wraith_id: UUID
 ) -> WraithCreationStatus:
     """
@@ -187,11 +189,10 @@ async def get_wraith_status(
     """
     return creator.create_status(avatar_id=wraith_id)
 
-@router.get("/wraith/delete", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/wraith/delete", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_wrath(
     creator: CreatorDep,
     cfg: ConfigDep,
-    _: APIKeyDep,
     wraith_id: UUID,
     tenant_id: UUID | None = None,
     org_id: UUID | None = None

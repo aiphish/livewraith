@@ -2,6 +2,7 @@ import asyncio
 from uuid import UUID
 from typing import Annotated
 from fastapi import Depends, Request, HTTPException
+from fastapi.requests import HTTPConnection
 import logging
 
 from aiphish.livewraith.config import LiveWraithConfig
@@ -12,11 +13,11 @@ from aiphish.livewraith.server.musetalk import load_avatar, AvatarCreator
 logger = logging.getLogger(__name__)
 
 
-def get_session_mgr(request: Request) -> SessionManager:
+def get_session_mgr(conn: HTTPConnection) -> SessionManager:
     """
     Returns the session manager singleton.
     """
-    return request.app.state.session_mgr
+    return conn.app.state.session_mgr
 
 SessionDep = Annotated[SessionManager, Depends(get_session_mgr)]
 
@@ -35,15 +36,16 @@ async def get_avatar(
     org_id: UUID,
 ) -> WraithAvatar:
     """
-    Loads the avatar files
+    Loads the avatar files. Cache is currently unbounded. Need to revise in future with cleanup.
     """
-    cache: dict[str, WraithAvatar] = request.app.state.avatars
+    cache: dict[UUID, WraithAvatar] = request.app.state.avatars
     lock: asyncio.Lock = request.app.state.avatar_lock
     cfg = request.app.state.cfg
     avatar_path = cfg.AVATAR_FOLDER
-    if wraith_id in cache:
-        return cache[wraith_id]
+    
     async with lock:
+        if wraith_id in cache:
+            return cache[wraith_id]
         try:
             cache[wraith_id] = await asyncio.to_thread(
                 load_avatar, wraith_id, tenant_id, org_id, avatar_path
