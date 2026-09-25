@@ -44,7 +44,7 @@ async def verify_api_key_ws(ws: WebSocket) -> str:
 
     Returns key hash.
     """
-    logger.debug(dict(ws.headers))
+    logger.debug(f"Headers: {dict(ws.headers)}")
     auth = ws.headers.get("authorization", "")
     if not auth.startswith("Bearer "):
         raise WebSocketException(
@@ -61,7 +61,7 @@ async def verify_api_key_ws(ws: WebSocket) -> str:
             code=status.WS_1008_POLICY_VIOLATION,
             reason="Invalid API key.",
         )
-
+    logger.debug("API KEY GOOD")
     return key_hash
 
 WSAPIKeyDep = Annotated[str, Depends(verify_api_key_ws)]
