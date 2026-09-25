@@ -16,7 +16,8 @@
         <li><a href="#s5">Getting Started (Vast.ai)</a></li>
         <li><a href="#s6">Creating a Wraith (Cloned identity)</a></li>
         <li><a href="#s7">Client Connection</a></li>
-        <li><a href="#s8">Acceptable Use</a></li>
+        <li><a href="#s8">Endpoints</a></li>
+        <li><a href="#s9">Acceptable Use</a></li>
     </ul>
 </nav>
 
@@ -26,11 +27,11 @@ LiveWraith is a livestreaming service designed to add realtime likeness cloning 
 
 <h2 id="s2">How does it work?</h2>
 
-LiveWraith injests PCM_16000 audio data over a websocket connection and returns the cloned Wraith (avatar) lipsyncing to the streaming audio via a WebRTC connection.
+LiveWraith ingests PCM_16000 audio data over a websocket connection and returns the cloned Wraith (avatar) lipsyncing to the streaming audio via a WebRTC connection.
 
 <h2 id="s3">Requirements</h2>
 
-LiveWraith works best on a machine with nvidia V100, RTX 4090, RTX 5090 or better graphics cards running CUDA 12.1.
+LiveWraith works best on a machine with an Nvidia V100, RTX 4090, RTX 5090 or better graphics cards running CUDA 12.1.
 
 The resulting stream is transfered via a WebRTC connection. As such, the server must accept UDP connections and be reachable for the WebRTC negotiation process (either direct or with STUN/TURN). The
 LiveWraith container deployment is built with a Cloudflare tunnel if a direct WebRTC connection is not possible. This allows the service to be run on GPU rental sites such as Vast.ai. Please
@@ -42,12 +43,12 @@ The only supported method of deployment is using the Docker container hosted at:
 
 https://ghcr.io/aiphish/livewraith
 
-Currently, this container only uses local storage for storing Wraiths (cloned identity files). Comaptibility with remote storage is in development.
+Currently, this container only supports local storage for storing Wraiths (cloned identity files). Compatibility with remote storage is in development.
 
 By default the container will be deployed in DEBUG mode. This can be disabled with `DEBUG=false`.
 
 Auth is handled through an Bearer token. All requests to the server (including websocket) must include the
-auth header: `Authorization Bearer <token>`
+auth header: `Authorization: Bearer <token>`
 
 An API key can be set in the container parameters. If the server is started in DEBUG mode, and a key is not provided, one will be generated on startup and can be found in the logs. This should not be used for production deployments. Debug logs are not sanitized.
 
@@ -94,10 +95,10 @@ If no tunnel token is provided, the tunnel will default to Cloudflare's free tun
 
 ### Auth:
 
-LiveWaith uses an API key to validate requests to the server for all endpoints. LiveWraith is designed to
+LiveWraith uses an API key to validate requests to the server for all endpoints. LiveWraith is designed to
 be used as a backend service in combination with Aiphish managing authorization. For this reason, all API keys have full access to all Wraith's created on the service (no tenant or organization isolation).
 
-API keys can be set on container startup using the `*API_KEYS` environment variable which takes in a list
+API keys can be set on container startup using the `API_KEYS` environment variable which takes in a list
 of keys: <br>
 
 `docker run -e API_KEYS='["key1", "key2", "key3"]'`
@@ -133,8 +134,40 @@ This service is designed to work seamlessly with the Aiphish framework. If you w
 
 The example streaming script saves the generated video stream to a file.
 
+<h2 id="s8"> Endpoints</h2>
 
-<h2 id="s8"> Acceptable Use</h2>
+`POST` `/api/v1/wraith/create?tenant_id={UUID|None}&org_id={UUID|None}`
+- video: mp4 video file, 15-20s, used for creating the Wraith
+
+Returns the wraith_id for the newly created Wraith. Initiates an asynchronous Wraith creation process.
+
+`GET` `/api/v1/wraith/status?wraith_id={UUID}`
+
+Returns the current status of the newly created Wraith.
+
+`DELETE` `/api/v1/wraith/delete?wraith_id={UUID}&tenant_id={UUID|None}&org_id={UUID|None}`
+
+Deletes the requested Wraith and all related files. Destructive, cannot be undone.
+
+`POST` `/api/v1/offer?tenant_id={UUID|None}&org_id={UUID|None}`
+- offer_request: | 
+        ```
+        class OfferRequest(BaseModel):
+        """
+        Format for requesting an offer:
+        """
+        sdp: str
+        type: str
+        ```
+- Returns {"sdp": str, "type": str, "pc_id": UUID}
+
+Creates the new WebRTC session.
+
+`WS` `/api/v1/wraith/stream?pc_id={UUID}&tenant_id={UUID|None}&org_id={UUID|None}`
+
+Initiates the websocket connection to send audio data to the server.
+
+<h2 id="s9"> Acceptable Use</h2>
 
 Aiphish and the LiveWraith service are legitimate security tools designed to empower security teams to protect their organizations by giving them the same tools threat actors are already using in the wild. By using any Aiphish tool, in any deployment form, you agree to our Acceptable Use Policy which explicitly prohibits targeting any individual, enterprise, organization, or entity, without their explicit, informed consent.
 
