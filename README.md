@@ -1,14 +1,30 @@
-# <img width="197" height="78" alt="2026-09-25_02-24" src="https://github.com/user-attachments/assets/06ca5689-c6ba-4e19-8d8d-324d77cefb07" /> | LiveWraith
+<p align="center">
+    <img width="197" height="78" alt="2026-09-25_02-24" src="https://github.com/user-attachments/assets/06ca5689-c6ba-4e19-8d8d-324d77cefb07" />
+</p>
 
-### What is LiveWraith?
+<p align="center">
+# LiveWraith
+</p>
+
+## Contents
+
+1. What is LiveWraith?
+2. How does it work?
+3. Requirements
+4. Deployment
+5. Getting Started (Vast.ai)
+6. Client Connection
+7. Acceptable Use
+
+## What is LiveWraith?
 
 LiveWraith is a livestreaming service designed to add realtime likeness cloning for the Aiphish deepfake phishing platform (https://github.com/aiphish/aiphish). 
 
-### How does it work?
+## How does it work?
 
-LiveWraith injests PCM_16000 audio data over a websocket connection and returns a WebRTC feed of the cloned Wraith (avatar) lipsyncing to the streaming audio.
+LiveWraith injests PCM_16000 audio data over a websocket connection and returns the cloned Wraith (avatar) lipsyncing to the streaming audio via a WebRTC connection.
 
-### Requirements
+## Requirements
 
 LiveWraith works best on a machine with nvidia V100, RTX 4090, RTX 5090 or better graphics cards running CUDA 12.1.
 
@@ -40,7 +56,7 @@ LiveWraith must have access to the system's GPU. If running on an on-prem deploy
 
 For cloud GPU deployments, consult the providers documentation. Vast.ai, which automatically passes the GPU through to the container, is discussed below for reference.
 
-#### Vast AI
+#### Getting Started Vast AI
 
 Template Setup:
 
