@@ -74,10 +74,12 @@ be enabled with the **ENABLE_TUNNEL** environment variable.
 
 ### Setting up a Vast.ai Template:
 
-`**Docker Image Path:** ghcr.io/aiphish/livewraith:latest <br>
-**Docker Options:** -e ENABLE_TUNNEL=true <br>
-**Launch Mode:** EntryPoint <br>
-**Disk Size:** Depends on how many Wraiths you intend to create and how long each reference video is. Aiphish uses a 15 second 720p reference video which equates to 1-2GB per Wraith. <br>`
+| Setting | Value |
+|---|---|
+| **Docker Image Path** | `ghcr.io/aiphish/livewraith:latest` |
+| **Docker Options** | `-e ENABLE_TUNNEL=true` |
+| **Launch Mode** | `EntryPoint` |
+| **Disk Size** | Depends on how many Wraiths you intend to create and how long each reference video is. Aiphish uses a 15 second 720p reference video which equates to 1-2GB per Wraith.
 
 ### Cloudflare Tunnel Config:
 
@@ -86,10 +88,12 @@ connect using your token with the **TUNNEL_TOKEN** environment variable.
 
 If no tunnel token is provided, the tunnel will default to Cloudflare's free tunnel domain which can be found in the Docker container's logs: <br>
 
-`2026-09-25T02:00:07Z INF +--------------------------------------------------------------------------------------------+ <br>
-2026-09-25T02:00:07Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  | <br>
-2026-09-25T02:00:07Z INF |  https://craft-traveler-beam-productive.trycloudflare.com                                  | <br>
-2026-09-25T02:00:07Z INF +--------------------------------------------------------------------------------------------+ <br>`
+```
+2026-09-25T02:00:07Z INF +--------------------------------------------------------------------------------------------+ 
+2026-09-25T02:00:07Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  | 
+2026-09-25T02:00:07Z INF |  https://craft-traveler-beam-productive.trycloudflare.com                                  | 
+2026-09-25T02:00:07Z INF +--------------------------------------------------------------------------------------------+
+```
 
 ### Auth:
 
