@@ -72,17 +72,22 @@ async def rtc_offer(
         log_info(f"Connection state: {pc.connectionState}")
         if pc.connectionState == "failed":
             await pc.close()
-    
-    answer = await pc.createAnswer()
-    await pc.setLocalDescription(answer)
 
-    
     pipeline = WraithPipeline(
         model=model,
         avatar=avatar,
         opt=opt,
         output=output
     )
+    pipeline.start()
+
+    try:
+        answer = await pc.createAnswer()
+        await pc.setLocalDescription(answer)
+    except Exception:
+        pipeline.stop()
+        await pc.close()
+        raise
 
     return OfferResult(
         sdp=pc.localDescription.sdp,
