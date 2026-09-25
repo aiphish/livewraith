@@ -106,6 +106,7 @@ def create_app(cfg: LiveWraithConfig) -> FastAPI:
     import aiphish.livewraith.server.routes as routes
 
     server.include_router(routes.router, prefix="/api/v1")
+    server.include_router(routes.ws_router, prefix="/api/v1")
 
     logger.info("Initialization finished.")
 
