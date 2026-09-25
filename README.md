@@ -74,24 +74,22 @@ be enabled with the **ENABLE_TUNNEL** environment variable.
 
 ### Setting up a Vast.ai Template:
 
-**Docker Image Path:** ghcr.io/aiphish/livewraith:latest
-**Docker Options:** -e ENABLE_TUNNEL=true
-**Launch Mode:** EntryPoint
-**Disk Size:** Depends on how many Wraiths you intend to create and how long each reference video is. Aiphish uses a 15 second 720p reference video which equates to 1-2GB per Wraith.
+`**Docker Image Path:** ghcr.io/aiphish/livewraith:latest <br>
+**Docker Options:** -e ENABLE_TUNNEL=true <br>
+**Launch Mode:** EntryPoint <br>
+**Disk Size:** Depends on how many Wraiths you intend to create and how long each reference video is. Aiphish uses a 15 second 720p reference video which equates to 1-2GB per Wraith. <br>`
 
 ### Cloudflare Tunnel Config:
 
 To connect to a custom Cloudflare tunnel domain, first set up the domain in your Cloudflare account. Then
 connect using your token with the **TUNNEL_TOKEN** environment variable.
 
-If no tunnel token is provided, the tunnel will default to Cloudflare's free tunnel domain which can be found in the Docker container's logs:
+If no tunnel token is provided, the tunnel will default to Cloudflare's free tunnel domain which can be found in the Docker container's logs: <br>
 
-<div align="center">
-2026-09-25T02:00:07Z INF +--------------------------------------------------------------------------------------------+
-2026-09-25T02:00:07Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
-2026-09-25T02:00:07Z INF |  https://craft-traveler-beam-productive.trycloudflare.com                                  |
-2026-09-25T02:00:07Z INF +--------------------------------------------------------------------------------------------+
-</div>
+`2026-09-25T02:00:07Z INF +--------------------------------------------------------------------------------------------+ <br>
+2026-09-25T02:00:07Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  | <br>
+2026-09-25T02:00:07Z INF |  https://craft-traveler-beam-productive.trycloudflare.com                                  | <br>
+2026-09-25T02:00:07Z INF +--------------------------------------------------------------------------------------------+ <br>`
 
 ### Auth:
 
@@ -99,16 +97,16 @@ LiveWaith uses an API key to validate requests to the server for all endpoints. 
 be used as a backend service in combination with Aiphish managing authorization. For this reason, all API keys have full access to all Wraith's created on the service (no tenant or organization isolation).
 
 API keys can be set on container startup using the **API_KEYS** environment variable which takes in a list
-of keys:
+of keys: <br>
 
-<div align="center"> docker run -e API_KEYS='["key1", "key2", "key3"]' </div>
+`docker run -e API_KEYS='["key1", "key2", "key3"]'`
 
 If running in DEBUG mode (default setup), the container will first check this environment variable for a list of keys. If none is provided a key will be automatically generated and can be viewed in the logs:
 
-<div align="center">
-2026-09-25 02:00:15 [INFO] aiphish.livewraith.main.lifespan: DEV MODE, NO API KEYS PROVIDED. GENERATING...
-2026-09-25 02:00:15 [INFO] aiphish.livewraith.main.lifespan: DO NOT USE IN PRODUCTION. API_KEY: 5zaTE-Qsth6PP...........BiUmSme0
-</div>
+
+`2026-09-25 02:00:15 [INFO] aiphish.livewraith.main.lifespan: DEV MODE, NO API KEYS PROVIDED. GENERATING...
+2026-09-25 02:00:15 [INFO] aiphish.livewraith.main.lifespan: DO NOT USE IN PRODUCTION. API_KEY: 5zaTE-Qsth6PP...........BiUmSme0`
+
 
 This mode should only be used for testing in development and not for production. 
 
@@ -121,7 +119,7 @@ directly at the camera with the subject's mouth closed.
 This endpoint will return a Wraith ID that is used to reference the created Wraith for future live streaming
 requests. While the Wraith ID is returned immediately, creation runs asynchronously in the background. The status of the Wraith creation process can be polled using the **/wraith/status** endpoint. This endpoint returns a json object:
 
-<div align="center"> Status: {'status': 'ready', 'progress': 1.0, 'stage': 'All stages complete', 'stage_progress': 0.0, 'error_msg': None} </div>
+`Status: {'status': 'ready', 'progress': 1.0, 'stage': 'All stages complete', 'stage_progress': 0.0, 'error_msg': None}`
 
 For more information and guidance see the <a href="https://doc.aiphish.ing">docs</a>.
 
