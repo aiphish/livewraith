@@ -44,9 +44,10 @@ async def verify_api_key_ws(ws: WebSocket) -> str:
 
     Returns key hash.
     """
-    logger.debug(f"Headers: {dict(ws.headers)}")
+    logger.info("WS auth headers: %s", list(ws.headers.keys()))
     auth = ws.headers.get("authorization", "")
     if not auth.startswith("Bearer "):
+        logger.warning("WS rejected: no bearer header")
         raise WebSocketException(
             code=status.WS_1008_POLICY_VIOLATION,
             reason="Invalid API key.",
