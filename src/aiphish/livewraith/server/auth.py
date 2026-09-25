@@ -44,6 +44,7 @@ async def verify_api_key_ws(ws: WebSocket) -> str:
 
     Returns key hash.
     """
+    logger.debug(dict(ws.headers))
     auth = ws.headers.get("authorization", "")
     if not auth.startswith("Bearer "):
         raise WebSocketException(
