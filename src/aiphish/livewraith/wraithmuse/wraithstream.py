@@ -167,8 +167,6 @@ class WraithPipeline:
             _transition_duration = 0.1
             _last_silent_frame = None
             _last_speaking_frame = None
-
-        self.output.start()
         
         while not quit_event.is_set():
             try:
@@ -225,7 +223,6 @@ class WraithPipeline:
 
                 self.output.push_audio_frame(frame, audio_frame.userdata)
 
-        self.output.stop()
         logger.info('baseavatar process_frames thread stop')
     
     def render(self):
