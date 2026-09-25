@@ -77,6 +77,7 @@ class WraithPipeline:
                              {'status': 'end', 'text': text})
 
     def start(self):
+        self.quit_event = Event()
         Thread(target=self.render, daemon=True).start()
 
     def stop(self):
