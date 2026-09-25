@@ -228,8 +228,8 @@ class WraithPipeline:
         self.output.stop()
         logger.info('baseavatar process_frames thread stop')
     
-    def render(self,quit_event):
-        self.quit_event = quit_event
+    def render(self):
+        
 
         infer_quit_event = Event()
         infer_thread = Thread(target=self.inference, args=(infer_quit_event,))
@@ -239,7 +239,7 @@ class WraithPipeline:
         process_thread = Thread(target=self.process_frames, args=(process_quit_event,))
         process_thread.start()
 
-        while not quit_event.is_set(): 
+        while not self.quit_event.is_set(): 
             t = time.perf_counter()
             self.asr.run_step()
 
