@@ -70,7 +70,7 @@ out LiveWraith on vast.ai and is not an example of a production ready setup.
 LiveWraith transfers the deepfaked video over a WebRTC connection. The client must
 be able to contact the server over UDP. At the time of writing this, vast.ai does not support direct UDP
 connections. To work around this, the LiveWraith container has a Cloudflare tunnel built in that can
-be enabled with the **ENABLE_TUNNEL** environment variable.
+be enabled with the `ENABLE_TUNNEL` environment variable.
 
 ### Setting up a Vast.ai Template:
 
@@ -79,13 +79,14 @@ be enabled with the **ENABLE_TUNNEL** environment variable.
 | **Docker Image Path** | `ghcr.io/aiphish/livewraith:latest` |
 | **Docker Options** | `-e ENABLE_TUNNEL=true` |
 | **Launch Mode** | `EntryPoint` |
-| **Disk Size** | A 15 second 720p reference video equates to 1-2GB per Wraith.*
+| **Disk Size** | A 15 second 720p reference video equates to 1-2GB per Wraith.
 
-* Depends on how many Wraiths you intend to create and how long each reference video is. 
+*Note: Disk size depends on how many Wraiths you intend to create and how long each reference video is. *
+
 ### Cloudflare Tunnel Config:
 
 To connect to a custom Cloudflare tunnel domain, first set up the domain in your Cloudflare account. Then
-connect using your token with the **TUNNEL_TOKEN** environment variable.
+connect using your token with the `TUNNEL_TOKEN` environment variable.
 
 If no tunnel token is provided, the tunnel will default to Cloudflare's free tunnel domain which can be found in the Docker container's logs: <br>
 
@@ -109,20 +110,21 @@ of keys: <br>
 If running in DEBUG mode (default setup), the container will first check this environment variable for a list of keys. If none is provided a key will be automatically generated and can be viewed in the logs:
 
 
-`2026-09-25 02:00:15 [INFO] aiphish.livewraith.main.lifespan: DEV MODE, NO API KEYS PROVIDED. GENERATING...
-2026-09-25 02:00:15 [INFO] aiphish.livewraith.main.lifespan: DO NOT USE IN PRODUCTION. API_KEY: 5zaTE-Qsth6PP...........BiUmSme0`
-
+```
+2026-09-25 02:00:15 [INFO] aiphish.livewraith.main.lifespan: DEV MODE, NO API KEYS PROVIDED. GENERATING...
+2026-09-25 02:00:15 [INFO] aiphish.livewraith.main.lifespan: DO NOT USE IN PRODUCTION. API_KEY: 5zaTE-Qsth6PP...........BiUmSme0
+```
 
 This mode should only be used for testing in development and not for production. 
 
 <h2 id="s6">Creating a Wraith (Cloned identity)</h2>
 
-A Wraith is created using the **/wraith/create** endpoint. Lipsyncing services work by painting a 
+A Wraith is created using the `/wraith/create` endpoint. Lipsyncing services work by painting a 
 mouth over a looped video. This looping video works best if it's 10-20 seconds of a neutral expression looking
 directly at the camera with the subject's mouth closed.
 
 This endpoint will return a Wraith ID that is used to reference the created Wraith for future live streaming
-requests. While the Wraith ID is returned immediately, creation runs asynchronously in the background. The status of the Wraith creation process can be polled using the **/wraith/status** endpoint. This endpoint returns a json object:
+requests. While the Wraith ID is returned immediately, creation runs asynchronously in the background. The status of the Wraith creation process can be polled using the `/wraith/status` endpoint. This endpoint returns a json object:
 
 `Status: {'status': 'ready', 'progress': 1.0, 'stage': 'All stages complete', 'stage_progress': 0.0, 'error_msg': None}`
 
