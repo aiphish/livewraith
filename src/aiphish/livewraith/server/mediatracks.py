@@ -34,14 +34,14 @@ class WraithTrack(MediaStreamTrack):
         else:
             rate, ptime = AUDIO_CLOCK_RATE, AUDIO_PTIME
 
-        if hasattr(self, "_timestamp"):
+        if self._start is None:
+            self._start = time.time()
+            self._timestamp = 0
+        else:
             self._timestamp += int(ptime * rate)
             wait = self._start + (self._timestamp / rate) - time.time()
             if wait > 0:
                 await asyncio.sleep(wait)
-        else:
-            self._start = time.time()
-            self._timestamp = 0
 
         frame.pts = self._timestamp
         frame.time_base = fractions.Fraction(1, rate)
