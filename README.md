@@ -2,21 +2,24 @@
     <img width="197" height="78" alt="2026-09-25_02-24" src="https://github.com/user-attachments/assets/06ca5689-c6ba-4e19-8d8d-324d77cefb07" />
 </p>
 
-<p align="center">
+<div align="center">
  <h1> LiveWraith </h1>
-</p>
+</div>
 
-## Contents
+<nav>
+    <h2> Contents </h2>
+    <ul>
+        <li><a href="#s1">What is LiveWraith?</a></li>
+        <li><a href="#s2">How does it work?</a></li>
+        <li><a href="#s3">Requirements</a></li>
+        <li><a href="#s4">Deployment</a></li>
+        <li><a href="#s5">Getting Started (Vast.ai)</a></li>
+        <li><a href="#s6">Client Connection</a></li>
+        <li><a href="#s7">Acceptable Use/a></li>
+    </ul>
+</nav>
 
-1. What is LiveWraith?
-2. How does it work?
-3. Requirements
-4. Deployment
-5. Getting Started (Vast.ai)
-6. Client Connection
-7. Acceptable Use
-
-## What is LiveWraith?
+<h2 id="s1"> What is LiveWraith? </h2>
 
 LiveWraith is a livestreaming service designed to add realtime likeness cloning for the Aiphish deepfake phishing platform (https://github.com/aiphish/aiphish). 
 
