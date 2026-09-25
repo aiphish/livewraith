@@ -9,7 +9,7 @@
 ### Use of Aiphish LiveWraith or any projects is only permitted in accordance with our acceptable use
 ### policy. https://aiphish.ing/acceptable-use
 ###
-### This repo references code or methods from: 
+### This repo references code or methods from:
 ### https://github.com/TMElyralab/MuseTalk published under the MIT License
 ### https://github.com/lipku/LiveTalking/ published under the Apache 2.0
 ########################################################################################################
