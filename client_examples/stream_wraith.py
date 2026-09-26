@@ -33,7 +33,7 @@ org_id = UUID('bc5c3f22-575a-4606-b41d-ccf42a83c2ca') # Update/ Optional
 api_key = os.getenv("LW_KEY")
 headers = {"Authorization": f"Bearer {api_key}"}
 
-lw_domain = "francisco-jimmy-specifics-insulation.trycloudflare.com" # Update
+lw_domain = "forgotten-navigation-determining-females.trycloudflare.com" # Update
 
 async def stream_audio_to_ws(pc_id, audio_file):
     uri = (
@@ -51,6 +51,7 @@ async def stream_audio_to_ws(pc_id, audio_file):
 
 async def webrtc_offer(output_file, wraith_id):
     recorder = MediaRecorder(output_file)
+    print("Saving to:", output_file)
 
     pc = RTCPeerConnection()
     pc.addTransceiver("audio", direction="recvonly")

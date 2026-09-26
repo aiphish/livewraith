@@ -9,7 +9,8 @@
 # 
 #
 # Use:
-#   python ./create_wraith.py [mode] video_file.mp4
+#   python ./create_wraith.py create video_file.mp4
+#   python ./create_wraith.py status wraith_id
 #   mode: 
 #           create: create a new Wraith
 #           status: check the status of the Wraith creation process
@@ -36,7 +37,7 @@ org_id = UUID("bc5c3f22-575a-4606-b41d-ccf42a83c2ca") # Update/ Optional
 api_key = os.getenv("LW_KEY")
 headers = {"Authorization": f"Bearer {api_key}"}
 
-lw_domain = "francisco-jimmy-specifics-insulation.trycloudflare.com" # Update
+lw_domain = "forgotten-navigation-determining-females.trycloudflare.com" # Update
 
 def create_wraith(video_file):
 
