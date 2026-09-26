@@ -12,6 +12,7 @@
 ### This repo references code or methods from:
 ### https://github.com/TMElyralab/MuseTalk published under the MIT License
 ### https://github.com/lipku/LiveTalking/ published under the Apache 2.0
+### Version: 1.0.0
 ########################################################################################################
 
 import asyncio
