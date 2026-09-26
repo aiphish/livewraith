@@ -17,15 +17,19 @@ jobs:
       packages: write      
 
     steps:
-    - uses: actions/checkout@v4
 
     - name: Free disk space
-      run: |
-        df -h /
-        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost
-        sudo apt-get clean
-        sudo docker image prune --all --force
-        df -h /
+      uses: jlumbroso/free-disk-space@v1.3.1
+      with:
+        tool-cache: true
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: false
+        docker-images: true
+        swap-storage: true
+        
+    - uses: actions/checkout@v4
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
