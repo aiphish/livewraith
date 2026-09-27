@@ -151,15 +151,14 @@ Returns the current status of the newly created Wraith.
 Deletes the requested Wraith and all related files. Destructive, cannot be undone.
 
 `POST` `/api/v1/offer?tenant_id={UUID|None}&org_id={UUID|None}`
-- offer_request: | 
+- offer_request: |
+  
         ```
         class OfferRequest(BaseModel):
-        """
-        Format for requesting an offer:
-        """
         sdp: str
         type: str
         ```
+
 - Returns {"sdp": str, "type": str, "pc_id": UUID}
 
 Creates the new WebRTC session.
