@@ -78,7 +78,7 @@ be enabled with the `ENABLE_TUNNEL` environment variable.
 | **Launch Mode** | `EntryPoint` |
 | **Disk Size** | A 15 second 720p reference video equates to 1-2GB per Wraith.
 
-*Note: Disk size depends on how many Wraiths you intend to create and how long each reference video is. *
+_Note: Disk size depends on how many Wraiths you intend to create and how long each reference video is._
 
 ### Cloudflare Tunnel Config:
 
