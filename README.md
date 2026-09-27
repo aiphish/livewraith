@@ -18,6 +18,7 @@
         <li><a href="#s7">Client Connection</a></li>
         <li><a href="#s8">Endpoints</a></li>
         <li><a href="#s9">Acceptable Use</a></li>
+        <li><a href="#s10">License</a></li>
     </ul>
 </nav>
 
@@ -172,6 +173,10 @@ Initiates the websocket connection to send audio data to the server.
 Aiphish and the LiveWraith service are legitimate security tools designed to empower security teams to protect their organizations by giving them the same tools threat actors are already using in the wild. By using any Aiphish tool, in any deployment form, you agree to our Acceptable Use Policy which explicitly prohibits targeting any individual, enterprise, organization, or entity, without their explicit, informed consent.
 
 https://aiphish.ing/acceptable-use.
+
+<h2 id="s10"> License</h2>
+
+Aiphish LiveWraith is released under the AGPL-3.0 license. LiveWraith bundles other opensource code and models which users of LiveWraith must comply with such as: MuseTalk, ft-mse-vae, dwpose, S3FD, Livetalking etc.
 
 
 
