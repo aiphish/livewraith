@@ -48,10 +48,10 @@ Currently, this container only supports local storage for storing Wraiths (clone
 
 By default the container will be deployed in DEBUG mode. This can be disabled with `DEBUG=false`.
 
-Auth is handled through an Bearer token. All requests to the server (including websocket) must include the
+Auth is handled through a Bearer token. All requests to the server (including websocket) must include the
 auth header: `Authorization: Bearer <token>`
 
-An API key can be set in the container parameters. If the server is started in DEBUG mode, and a key is not provided, one will be generated on startup and can be found in the logs. This should not be used for production deployments. Debug logs are not sanitized.
+An API key can be set in the container env variables. If the server is started in DEBUG mode, and a key is not provided, one will be generated on startup and can be found in the logs. This should not be used for production deployments. Debug logs are not sanitized.
 
 LiveWraith must have access to the system's GPU. If running on an on-prem deployment use docker flag `-gpus=all` or declare a device.
 
