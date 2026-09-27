@@ -130,8 +130,8 @@ For more information and guidance see the <a href="https://doc.aiphish.ing">docs
 <h2 id="s7"> Client connection</h2>
 
 This service is designed to work seamlessly with the Aiphish framework. If you wish to use it as a standalone service, reference scripts are provided at:  <br>
-* https://github.com/aiphish/livewraith/client_examples/create_wraith.py 
-* https://github.com/aiphish/livewraith/client_examples/stream_wraith.py
+* [create_wraith.py](https://github.com/aiphish/livewraith/blob/main/client_examples/create_wraith.py)
+* [stream_wraith.py](https://github.com/aiphish/livewraith/blob/main/client_examples/stream_wraith.py)
 
 The example streaming script saves the generated video stream to a file.
 
