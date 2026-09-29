@@ -76,7 +76,7 @@ be enabled with the `ENABLE_TUNNEL` environment variable.
 | **Docker Image Path** | `ghcr.io/aiphish/livewraith:latest` |
 | **Docker Options** | `-e ENABLE_TUNNEL=true` |
 | **Launch Mode** | `EntryPoint` |
-| **Disk Size** | A 15 second 720p reference video equates to 1-2GB per Wraith.
+| **Disk Size** | The container with weights requires 11.5 GB plus storage room for Wraith data. A 15 second 720p reference video equates to 1-2GB per Wraith.
 
 _Note: Disk size depends on how many Wraiths you intend to create and how long each reference video is._
 
